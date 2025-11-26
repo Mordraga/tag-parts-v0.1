@@ -1,0 +1,43 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+www/
+
+# Capacitor native build artifacts
+android/app/build/
+android/build/
+android/.gradle/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+ios/App/build/
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+
+# Tooling caches
+.sourcemaps
+.npm/
+.eslintcache
+*.tsbuildinfo
+
+# Logs and temp files
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor / OS clutter
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

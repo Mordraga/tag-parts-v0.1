@@ -1,0 +1,379 @@
+
+/* ========== Core Variables ========== */
+:root {
+  --bg: #f7f7f7;
+  --text: #222;
+  --border: #ddd;
+  --card-bg: #ffffff;
+  --radius: 12px;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --accent: #6699cc;
+  --timestamp: #666;
+  --input-bg: #fff;
+  --nav-bg: #666666cc;
+  --nav-link: #fff;
+}
+
+[data-theme="dark"] {
+  --bg: #181818;
+  --text: #eee;
+  --border: #444;
+  --card-bg: #222;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --accent: #88bbee;
+  --timestamp: #aaa;
+  --input-bg: #2a2a2a;
+  --nav-bg: #111111;
+  --nav-link: #fff;
+}
+
+/* ========== Reset + Layout ========== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 20px;
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ========== Typography ========== */
+h2, h3 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* ========== Card Wrapper ========== */
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  gap: 4px;
+  width: auto%
+}
+
+/* ========== Form Elements ========== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+input,
+textarea,
+button,
+select {
+  background: var(--input-bg);
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  width: 100%;
+  color: var(--text);
+}
+
+input[type="color"] {
+  height: 40px;
+  min-width: 60px;
+  background: none;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  transform: scale(1.3);
+  margin: 0;
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ========== Form Layout Rows ========== */
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.field-row label {
+  flex: 0 0 120px;
+  font-weight: bold;
+}
+
+/* ========== Buttons ========== */
+button {
+  background-color: var(--accent);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background-color: #557aa8;
+}
+
+/* ========== Part Cards ========== */
+.part-card {
+  background: var(--card-bg);
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+.part-card strong {
+  font-size: 18px;
+  display: block;
+}
+
+.part-card em {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.part-card .timestamp {
+  font-size: 12px;
+  color: var(--timestamp);
+  margin-top: 4px;
+}
+
+.part-card button {
+  margin-top: 10px;
+  background-color: #a33;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.part-card button:hover {
+  background-color: #911;
+}
+
+/* ========== Comment Threads ========== */
+.comment-thread {
+  margin-top: 8px;
+  padding-left: 10px;
+  border-left: 3px solid var(--border);
+  border-radius: 4px;
+  background: var(--card-bg);
+}
+
+.comment {
+  background: var(--input-bg);
+  padding: 6px 10px;
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.comment-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* ========== Logs ========== */
+.log-entry {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 10px 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  border-left: 4px solid var(--accent);
+}
+
+.log-entry .timestamp {
+  font-size: 0.8rem;
+  color: var(--timestamp);
+}
+
+.log-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.log-edit-form {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .log-edit-form {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.log-edit-form input,
+.log-edit-form textarea,
+.log-edit-form label {
+  margin-bottom: 8px;
+}
+
+.log-edit-form .edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ========== Navigation ========== */
+nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--nav-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+  z-index: 10;
+}
+
+nav a {
+  color: var(--nav-link);
+  width: fill;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 18px;
+  border: 1px solid;
+  border-radius: var(--radius);
+  border-color: #333;
+  padding: 5px;
+  background-color: #6b60bb; 
+}
+/* ========== Settings ========== */
+.settings-card {
+  padding: 1rem;
+  margin: 1rem auto;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--card-bg, #fff);
+  width:100%;
+  max-width: 500px;
+}
+
+.settings-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.settings-card .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.settings-card button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  border: none;
+  background-color: #6699cc;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.settings-card button:hover {
+  background-color: #4a80b0;
+}
+
+.settings-card button.danger {
+  background-color: #a33;
+}
+
+.settings-card button.danger:hover {
+  background-color: #911;
+}
+
+/* ========== Utilities ========== */
+.hidden {
+  display: none !important;
+}
+
+.mention {
+  font-weight: 600;
+}
+
+.toast-tip {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translate(-50%, 20px);
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 999;
+}
+
+.toast-tip.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.archive-container {
+  margin-top: 12px;
+}
+
+.part-suggestions-menu {
+  position: absolute;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  z-index: 999;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.part-suggestions-menu button {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.part-suggestions-menu button:hover,
+.part-suggestions-menu button:focus {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.part-suggestions-menu.hidden {
+  display: none;
+}

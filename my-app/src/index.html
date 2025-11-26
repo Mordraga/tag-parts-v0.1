@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Front Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/settings.js" type="module"></script>
+</head>
+<body>
+
+  <h2>📦 Who's Fronting?</h2>
+  <div class="card">
+    <input id="who" placeholder="Who are you? (required)" />
+    <input id="where" placeholder="Where are you? (required)" />
+    <input id="when" placeholder="What time is it? (required)" />
+  
+    <div class="log-entry">
+      <label for="awareness">Do you feel here? (1-10, 10 is here.): <span id="awarenessValue">5</span></label>
+      <input type="range" id="aware" name="awareness" min="1" max="10" value="5">
+    </div>
+
+    <textarea id="msg" placeholder="Message (optional)"></textarea>
+    <button id="log-btn">Log Entry</button>
+
+    
+    </div>
+  
+    <h3>📜 Recent Logs</h3>
+  <div class="log-entry" id="logDisplay">
+  </div>
+  
+  <nav>
+      <a href="loggys.html">📜</a>
+      <a href="parts.html">👥</a>
+      <a href="index.html">🏠 Home</a>
+      <a href="messageBoard.html">💬</a>
+      <a href="Settings.html">⚙️</a>
+    </nav>
+
+  <script type="module" src="js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Front Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/settings.js" type="module"></script>
+</head>
+<body>
+  <h2>
+    Message board
+  </h2>
+<div class="card" id="thread-form">
+  <div class="row">
+    <label for="input-part">Who is making this thread?</label>
+    <input type="text" id="input-part" placeholder="Type or pick a part" />
+  </div>
+
+  <label>Subject:
+    <input type="text" id="input-subject" placeholder="What's this about?">
+  </label><br>
+
+  <button id="post-thread-btn">Post</button>
+</div>
+  
+  <div>
+    <div id="message-board">
+    </div>
+  </div>
+  
+    <nav>
+      <a href="loggys.html">📜</a>
+      <a href="parts.html">👥</a>
+      <a href="index.html">🏠</a>
+      <a href="messageBoard.html">💬 Threads</a>
+      <a href="Settings.html">⚙️</a>
+    </nav>
+  
+</body>
+<script type="module" src="js/messageBoard.js"></script>
+</html>

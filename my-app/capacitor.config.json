@@ -1,0 +1,10 @@
+{
+  "appId": "com.tagparts.www",
+  "appName": "Tag Parts",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true
+    }
+  }
+}

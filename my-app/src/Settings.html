@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Front Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/settings.js" type="module"></script>
+</head>
+<body>
+  <h2>⚙️ Settings</h2>
+
+  <div class="card settings-card">
+    <h3>🧠 App Preferences</h3>
+    <div class="row">
+      <label for="darkModeToggle">Dark Mode</label>
+      <input type="checkbox" id="darkModeToggle" />
+    </div>
+
+    <div class="row">
+      <label for="timestampFormat">Timestamp Format</label>
+      <select id="timestampFormat">
+        <option value="12hr">12-Hour</option>
+        <option value="24hr">24-Hour</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card settings-card">
+    <h3>💾 Data</h3>
+    <div class="card settings-card">
+      <h4>Parts</h4>
+      <p>Use the backup box to copy or paste your parts JSON.</p>
+      <textarea id="partsBackupArea" rows="6" placeholder="Parts JSON will appear here"></textarea>
+      <div class="row">
+        <button id="exportPartsBtn">Copy Parts</button>
+        <button id="importPartsBtn">Restore Parts</button>
+      </div>
+    </div>
+    
+    <div class="card settings-card">
+      <h4>Logs</h4>
+      <button id="exportBtn">Export Logs</button>
+      <button id="clearLogsBtn" class="danger">Clear Logs</button>
+      <button id="toggleArchiveBtn">Show Archive</button>
+      <div id="archiveContainer" class="archive-container hidden"></div>
+    </div>
+   </div>
+
+  <nav>
+      <a href="loggys.html">📜</a>
+      <a href="parts.html">👥</a>
+      <a href="index.html">🏠</a>
+      <a href="messageBoard.html">💬</a>
+      <a href="Settings.html">⚙️ Options</a>
+    </nav>
+
+  <script type="module" src="js/settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Front Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/settings.js" type="module"></script>
+  </head>
+  <body>
+    <h2>Parts Directory</h2>
+    <div id="partManagement" class="form-wrapper">
+  <h3 class="form-header">🧠 Add or Edit a Part</h3>
+    <form class="card" id="partForm">
+        <input id="name" type="text" placeholder="Part Name" required />
+        <input id="role" type="text" placeholder="System Role" required />
+        <input id="ifsRole" type="text" placeholder="IFS Name (Optional)" />
+        <input id="alias" type="text" placeholder="Alias / Other Name(s)" />
+
+        <div class="row">
+          <label for="private">Hidden/Internal</label>
+          <input type="checkbox" id="private" />
+        </div>
+
+        <div class="row">
+          <label for="color">Part Color</label>
+          <input type="color" id="color" name="color" value="#6699cc" />
+        </div>
+
+        <div class="row">
+          <label for="hexColor">Hex Code</label>
+          <input type="text" id="hexColor" placeholder="#6699cc" maxlength="7" />
+        </div>
+
+        <div id="colorPreview" style="
+          height: 28px;
+          border-radius: 6px;
+          margin-top: 8px;
+          text-align: center;
+          font-weight: bold;
+          line-height: 28px;">
+        </div>
+
+        <button type="submit">Add Part</button>
+      </form>
+
+  <section id="partList"></section>
+</div>
+
+      <section id="partList"></section>
+    </div>
+
+  <nav>
+      <a href="loggys.html">📜</a>
+      <a href="parts.html">👥 Parts</a>
+      <a href="index.html">🏠</a>
+      <a href="messageBoard.html">💬</a>
+      <a href="Settings.html">⚙️</a>
+    </nav>
+
+    <script type="module" src="js/parts.js"></script>
+  </body>
+</html>
