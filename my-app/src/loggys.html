@@ -9,10 +9,58 @@
   <script src="js/settings.js" type="module"></script>
 </head>
 <body>
-  <h2>
-    Logs
-  </h2>
-  <div class="log" id="logDisplay"></div>
+  <h2>Logs Calendar</h2>
+
+  <section class="log-filters">
+    <div class="filter-row">
+      <div class="filter-field">
+        <label for="filterType">Filter By</label>
+        <select id="filterType">
+          <option value="">None</option>
+          <option value="part">Part</option>
+          <option value="date">Date Range</option>
+          <option value="location">Location</option>
+          <option value="keyword">Keyword</option>
+          <option value="awareness">Awareness</option>
+        </select>
+      </div>
+      <div id="filterControlContainer" class="filter-dynamic"></div>
+      <button id="clearFilter" type="button" class="ghost filter-clear">Clear</button>
+    </div>
+    <p class="filter-note" id="filterSummary">Select a filter to highlight days with matching logs.</p>
+    <datalist id="locationOptions"></datalist>
+  </section>
+
+  <section class="calendar-wrapper">
+    <div class="calendar-header">
+      <button id="prevMonth" aria-label="Previous month">&#8592;</button>
+      <div class="calendar-title">
+        <span id="calendarMonthLabel"></span>
+        <button id="todayBtn" class="ghost">Today</button>
+      </div>
+      <button id="nextMonth" aria-label="Next month">&#8594;</button>
+    </div>
+    <div class="calendar-weekdays">
+      <span>Sun</span>
+      <span>Mon</span>
+      <span>Tue</span>
+      <span>Wed</span>
+      <span>Thu</span>
+      <span>Fri</span>
+      <span>Sat</span>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </section>
+
+  <section id="dayDetail" class="day-detail collapsed">
+    <div class="day-detail-header">
+      <h3 id="dayDetailLabel">Select a day</h3>
+      <button id="closeDayDetail" class="ghost">Back to Calendar</button>
+    </div>
+    <div id="dayLogs" class="day-log-list">
+      <p class="empty">Pick a date to see detailed logs.</p>
+    </div>
+  </section>
   
   <nav>
       <a href="loggys.html">📜 Logs</a>

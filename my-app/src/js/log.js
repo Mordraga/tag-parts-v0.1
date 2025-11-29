@@ -57,6 +57,26 @@ function normalizeLog(entry, partsIndex = loadPartsIndex(), tracker) {
   const normalized = { ...entry };
   tracker = tracker || { changed: false };
 
+  function assignTimestampMetadata(dateValue) {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+      return;
+    }
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const nextDateKey = `${year}-${month}-${day}`;
+    const nextMonthKey = `${year}-${month}`;
+    if (normalized.dateKey !== nextDateKey) {
+      normalized.dateKey = nextDateKey;
+      tracker.changed = true;
+    }
+    if (normalized.monthKey !== nextMonthKey) {
+      normalized.monthKey = nextMonthKey;
+      tracker.changed = true;
+    }
+  }
+
   if (!normalized.id) {
     normalized.id = generateID();
     tracker.changed = true;
@@ -65,6 +85,10 @@ function normalizeLog(entry, partsIndex = loadPartsIndex(), tracker) {
   if (!normalized.timestamp) {
     normalized.timestamp = new Date().toISOString();
     tracker.changed = true;
+  }
+
+  if (normalized.timestamp) {
+    assignTimestampMetadata(normalized.timestamp);
   }
 
   const { mentions } = formatMentions(normalized.msg || '', partsIndex);
@@ -211,28 +235,42 @@ export function restoreArchivedLog(id, containerId) {
   showToast('Log restored.');
 }
 
-export function archiveLogEntry(targetLog, type = GENERAL_LOG, containerId = 'logDisplay') {
+export function archiveLogEntry(
+  targetLog,
+  type = GENERAL_LOG,
+  containerId = 'logDisplay',
+  refreshCallback
+) {
   const partsIndex = loadPartsIndex();
   const normalizedTarget = normalizeLog(targetLog, partsIndex);
   removeLogFromActive(normalizedTarget, partsIndex);
   addToArchive(normalizedTarget, partsIndex);
-  if (containerId) {
+  if (typeof refreshCallback === 'function') {
+    refreshCallback();
+  } else if (containerId) {
     renderLogs(containerId, type);
   }
   showToast('Log archived.');
 }
 
-export function deleteLogEntry(targetLog, type = GENERAL_LOG, containerId = 'logDisplay') {
+export function deleteLogEntry(
+  targetLog,
+  type = GENERAL_LOG,
+  containerId = 'logDisplay',
+  refreshCallback
+) {
   const partsIndex = loadPartsIndex();
   const normalizedTarget = normalizeLog(targetLog, partsIndex);
   removeLogFromActive(normalizedTarget, partsIndex);
-  if (containerId) {
+  if (typeof refreshCallback === 'function') {
+    refreshCallback();
+  } else if (containerId) {
     renderLogs(containerId, type);
   }
   showToast('Log deleted.');
 }
 
-export function editLogEntry(id, changes, containerId, type) {
+export function editLogEntry(id, changes, containerId, type, refreshCallback) {
 
   const partsIndex = loadPartsIndex();
   const logs = loadFromStorage(GENERAL_LOG);
@@ -243,10 +281,14 @@ export function editLogEntry(id, changes, containerId, type) {
   logs[idx] = updated;
   saveToStorage(GENERAL_LOG, logs);
   syncRecentEntry(updated);
-  renderLogs(containerId, type);
+  if (typeof refreshCallback === 'function') {
+    refreshCallback(updated);
+  } else {
+    renderLogs(containerId, type);
+  }
 }
 
-function buildEditForm(log, containerId, type) {
+function buildEditForm(log, containerId, type, refreshCallback) {
   const form = document.createElement('div');
   form.className = 'log-edit-form';
   form.innerHTML = `
@@ -288,7 +330,8 @@ function buildEditForm(log, containerId, type) {
       log.id,
       { who, where, when, msg, awareness },
       containerId,
-      type
+      type,
+      refreshCallback
     );
   });
 
@@ -296,81 +339,104 @@ function buildEditForm(log, containerId, type) {
 }
 
 export function renderLogs(containerId = 'logDisplay', type = GENERAL_LOG) {
-  const logs = getLogEntries(type);
   const container = document.getElementById(containerId);
   if (!container) return;
+  const logs = getLogEntries(type);
+  const refresh = () => renderLogs(containerId, type);
+  renderLogEntries(logs, container, { containerId, type, onRefresh: refresh });
+}
 
+export function renderLogEntries(logs, container, options = {}) {
+  if (!container) return;
   container.innerHTML = '';
-  const partsIndex = loadPartsIndex();
-
+  const partsIndex = options.partsIndex || loadPartsIndex();
   logs.forEach((log) => {
-    const div = document.createElement('div');
-    div.className = 'log-entry';
-    const part = findPartByName(log.who, partsIndex);
-    const color = log.partColor || part?.color;
-    if (color) {
-      div.style.borderLeftColor = color;
-    }
+    const entry = createLogEntryElement(log, partsIndex, options);
+    container.appendChild(entry);
+  });
+}
 
-    const logContent = document.createElement('div');
-    logContent.className = 'log-content';
-    const mentionData = formatMentions(log.msg || '', partsIndex);
-    logContent.innerHTML = `
-      <p>👤 <strong>Who:</strong> ${log.who}</p>
-      <p>📍 <strong>Where:</strong> ${log.where}</p>
-      <p>🕒 <strong>When:</strong> ${log.when}</p>
-      <p>🧭 <strong>Awareness:</strong> ${log.awareness}</p>
-      ${log.msg ? `<p>💬 <strong>Message:</strong> ${mentionData.html}</p>` : ''}
-      <p class="timestamp">🗓 ${formatTimestamp(log.timestamp)}</p>
+function createLogEntryElement(log, partsIndex, options = {}) {
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  const part = findPartByName(log.who, partsIndex);
+  const color = log.partColor || part?.color;
+  if (color) {
+    div.style.borderLeftColor = color;
+  }
+
+  const logContent = document.createElement('div');
+  logContent.className = 'log-content';
+  const mentionData = formatMentions(log.msg || '', partsIndex);
+  const timestampLabel = log.timestamp ? formatTimestamp(log.timestamp) : '';
+  logContent.innerHTML = `
+      <p><strong>Who:</strong> ${log.who}</p>
+      <p><strong>Where:</strong> ${log.where}</p>
+      <p><strong>When:</strong> ${log.when}</p>
+      <p><strong>Awareness:</strong> ${log.awareness}</p>
+      ${log.msg ? `<p><strong>Message:</strong> ${mentionData.html}</p>` : ''}
+      <p class="timestamp">${timestampLabel}</p>
     `;
 
-    const actions = document.createElement('div');
-    actions.className = 'log-actions';
+  const actions = document.createElement('div');
+  actions.className = 'log-actions';
+  const refresh = typeof options.onRefresh === 'function'
+    ? options.onRefresh
+    : () => {
+        if (options.containerId) {
+          renderLogs(options.containerId, options.type || GENERAL_LOG);
+        }
+      };
+  const targetType = options.type || GENERAL_LOG;
 
-    const editBtn = document.createElement('button');
-    editBtn.textContent = 'Edit';
-    editBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (div.querySelector('.log-edit-form')) return;
-      if (!ensureEditAccess()) return;
-    const editForm = buildEditForm(log, containerId, type);
-      div.appendChild(editForm);
-    });
-
-    const archiveBtn = document.createElement('button');
-    archiveBtn.textContent = 'Archive';
-    archiveBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      archiveLogEntry(log, type, containerId);
-    });
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (confirm('Delete this log permanently?')) {
-        deleteLogEntry(log, type, containerId);
-      }
-    });
-
-    actions.appendChild(editBtn);
-    actions.appendChild(archiveBtn);
-    actions.appendChild(deleteBtn);
-
-    const commentWrapper = document.createElement('div');
-    commentWrapper.className = 'comment-toggle hidden';
-    const commentKey = `log_comment_${log.id}`;
-    renderCommentSection(commentWrapper, commentKey);
-
-    logContent.addEventListener('click', () => {
-      commentWrapper.classList.toggle('hidden');
-    });
-
-    div.appendChild(logContent);
-    div.appendChild(actions);
-    div.appendChild(commentWrapper);
-    container.appendChild(div);
+  const editBtn = document.createElement('button');
+  editBtn.textContent = 'Edit';
+  editBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (div.querySelector('.log-edit-form')) return;
+    if (!ensureEditAccess()) return;
+    const editForm = buildEditForm(
+      log,
+      options.containerId,
+      targetType,
+      refresh
+    );
+    div.appendChild(editForm);
   });
+
+  const archiveBtn = document.createElement('button');
+  archiveBtn.textContent = 'Archive';
+  archiveBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    archiveLogEntry(log, targetType, options.containerId, refresh);
+  });
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (confirm('Delete this log permanently?')) {
+      deleteLogEntry(log, targetType, options.containerId, refresh);
+    }
+  });
+
+  actions.appendChild(editBtn);
+  actions.appendChild(archiveBtn);
+  actions.appendChild(deleteBtn);
+
+  const commentWrapper = document.createElement('div');
+  commentWrapper.className = 'comment-toggle hidden';
+  const commentKey = `log_comment_${log.id}`;
+  renderCommentSection(commentWrapper, commentKey);
+
+  logContent.addEventListener('click', () => {
+    commentWrapper.classList.toggle('hidden');
+  });
+
+  div.appendChild(logContent);
+  div.appendChild(actions);
+  div.appendChild(commentWrapper);
+  return div;
 }
 
 export function renderArchive(containerId) {
