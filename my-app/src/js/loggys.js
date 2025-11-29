@@ -314,11 +314,14 @@ function renderCalendarGrid(buckets) {
   const startShift = workingDate.getDay();
   workingDate.setDate(workingDate.getDate() - startShift);
 
+  const filterActive = isFilterActive();
   for (let i = 0; i < 35; i += 1) {
     const cellDate = new Date(workingDate);
     cellDate.setDate(workingDate.getDate() + i);
     const dateKey = toDateKey(cellDate);
     const logs = buckets[dateKey] || [];
+    const filteredLogs = filterActive ? logs.filter((log) => matchesFilter(log)) : logs;
+
     const cell = document.createElement('button');
     cell.type = 'button';
     cell.className = 'calendar-cell';
@@ -331,19 +334,21 @@ function renderCalendarGrid(buckets) {
     if (state.dateRange && isDateWithinRange(dateKey, state.dateRange)) {
       cell.classList.add('filter-range');
     }
-    if (state.filteredDates.has(dateKey)) {
+    if (state.filteredDates.has(dateKey) || filteredLogs.length) {
       cell.classList.add('filter-match');
     }
     if (state.selectedDateKey === dateKey) {
       cell.classList.add('selected');
     }
 
+    const countLabel = filterActive ? filteredLogs.length : logs.length;
     cell.innerHTML = `
       <span class="date-number">${cellDate.getDate()}</span>
-      <span class="log-count">${logs.length ? logs.length : ''}</span>
+      <span class="log-count">${countLabel ? countLabel : ''}</span>
     `;
     cell.addEventListener('click', () => {
-      showDayDetail(dateKey, cellDate, logs);
+      const dayLogs = filterActive ? filteredLogs : logs;
+      showDayDetail(dateKey, cellDate, dayLogs);
     });
     refs.grid.appendChild(cell);
   }

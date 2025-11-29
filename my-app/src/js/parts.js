@@ -13,6 +13,7 @@ function getParts() {
 function saveParts(parts) {
   saveToStorage(STORAGE_KEY, parts);
   updatePartsIndex(parts);
+  rebuildPartsMap(parts);
   refreshPartSuggestions();
 }
 
@@ -32,19 +33,39 @@ function getPartsIndex() {
   return loadFromStorage(INDEX_KEY);
 }
 
+function rebuildPartsMap(parts) {
+  Object.keys(partsMap).forEach((key) => delete partsMap[key]);
+  parts.forEach((part) => {
+    if (part?.name) {
+      partsMap[part.name] = part;
+    }
+  });
+}
+
 function addPart(part) {
   const parts = getParts();
   parts.push(part);
   saveParts(parts);
-
-  // New: Add to live map
-  partsMap[part.name] = part;
 }
 
 function deletePart(index) {
   if (!confirm('Delete this part?')) return;
   const parts = getParts();
   parts.splice(index, 1);
+  saveParts(parts);
+  renderParts();
+}
+
+function editPart(index, updates) {
+  const parts = getParts();
+  const target = parts[index];
+  if (!target) return;
+  const nextPart = {
+    ...target,
+    ...updates,
+    timestamp: new Date().toLocaleString()
+  };
+  parts[index] = nextPart;
   saveParts(parts);
   renderParts();
 }
@@ -114,12 +135,27 @@ function renderParts() {
     timeEl.style.color = textColor;
     div.appendChild(timeEl);
 
-    // Delete button
+    const actions = document.createElement('div');
+    actions.className = 'part-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => {
+      if (div.querySelector('.part-edit-form')) return;
+      const form = buildEditForm(part, index);
+      div.appendChild(form);
+    };
+
     const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'danger';
     deleteBtn.textContent = 'Delete';
-    deleteBtn.style.color = textColor;
     deleteBtn.onclick = () => deletePart(index);
-    div.appendChild(deleteBtn);
+
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+    div.appendChild(actions);
 
     container.appendChild(div);
   });
@@ -223,11 +259,81 @@ function getTextColorForBackground(hex) {
   return brightness > 128 ? '#000' : '#fff';
 }
 
+function buildEditForm(part, index) {
+  const form = document.createElement('div');
+  form.className = 'part-edit-form';
+  form.innerHTML = `
+    <label>Name
+      <input type="text" class="edit-name" value="${part.name || ''}" />
+    </label>
+    <label>Alias
+      <input type="text" class="edit-alias" value="${part.alias || ''}" />
+    </label>
+    <label>Role
+      <input type="text" class="edit-role" value="${part.role || ''}" />
+    </label>
+    <label>IFS Role
+      <input type="text" class="edit-ifs" value="${part.ifsRole || ''}" />
+    </label>
+    <label>Color
+      <div class="color-pair">
+        <input type="color" class="edit-color" value="${part.color || '#6699cc'}" />
+        <input type="text" class="edit-hex" value="${part.color || '#6699cc'}" />
+      </div>
+    </label>
+    <label class="checkbox-field">
+      <input type="checkbox" class="edit-private" ${part.private ? 'checked' : ''} />
+      Private
+    </label>
+    <div class="edit-actions">
+      <button type="button" class="save-part-edit">Save</button>
+      <button type="button" class="cancel-part-edit">Cancel</button>
+    </div>
+  `;
+
+  const colorInput = form.querySelector('.edit-color');
+  const hexInput = form.querySelector('.edit-hex');
+  const syncColor = (value) => {
+    if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+      colorInput.value = value;
+      hexInput.value = value;
+    }
+  };
+  colorInput.addEventListener('input', () => syncColor(colorInput.value));
+  hexInput.addEventListener('input', () => syncColor(hexInput.value));
+
+  form.querySelector('.cancel-part-edit').addEventListener('click', () => {
+    form.remove();
+  });
+
+  form.querySelector('.save-part-edit').addEventListener('click', () => {
+    const updates = {
+      name: form.querySelector('.edit-name').value.trim(),
+      alias: form.querySelector('.edit-alias').value.trim(),
+      role: form.querySelector('.edit-role').value.trim(),
+      ifsRole: form.querySelector('.edit-ifs').value.trim(),
+      color: hexInput.value.trim(),
+      private: form.querySelector('.edit-private').checked
+    };
+    if (!updates.name || !updates.role) {
+      alert('Name and Role are required.');
+      return;
+    }
+    if (!/^#[0-9a-fA-F]{6}$/.test(updates.color)) {
+      updates.color = colorInput.value;
+    }
+    editPart(index, updates);
+  });
+
+  return form;
+}
+
 window.getPartsIndex = getPartsIndex;
 window.deletePart = deletePart;
 
 window.addEventListener('DOMContentLoaded', () => {
   ensureIndexFile();
+  rebuildPartsMap(getParts());
   document.getElementById('partForm').addEventListener('submit', handleSubmit);
   setupColorSync();
   renderParts();

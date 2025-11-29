@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const darkToggle = document.getElementById('darkModeToggle');
   const clearLogsBtn = document.getElementById('clearLogsBtn');
   const exportLogsBtn = document.getElementById('exportBtn');
+  const importLogsBtn = document.getElementById('importLogsBtn');
+  const importLogsInput = document.getElementById('importLogsInput');
   const exportPartsBtn = document.getElementById('exportPartsBtn');
   const importPartsBtn = document.getElementById('importPartsBtn');
   const partsBackupArea = document.getElementById('partsBackupArea');
@@ -59,6 +61,35 @@ exportLogsBtn?.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
+  importLogsBtn?.addEventListener('click', () => {
+    importLogsInput?.click();
+  });
+
+  importLogsInput?.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const payload = JSON.parse(reader.result);
+        applyImportedLogs(payload);
+        alert('Logs imported.');
+        if (archiveContainer && !archiveContainer.classList.contains('hidden')) {
+          renderArchive('archiveContainer');
+        }
+      } catch (err) {
+        alert('Error importing logs: ' + err.message);
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.onerror = () => {
+      alert('Unable to read selected file.');
+      event.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
   // === Parts: Export ===
   exportPartsBtn?.addEventListener('click', async () => {
     const parts = loadFromStorage('parts_data');
@@ -107,6 +138,13 @@ exportLogsBtn?.addEventListener('click', () => {
         throw new Error("Invalid parts format.");
       }
       saveToStorage('parts_data', parts);
+      const index = parts
+        .filter((part) => part?.name)
+        .map((part) => ({ name: part.name, color: part.color }));
+      if (!index.some((part) => part?.name?.trim().toLowerCase() === '???')) {
+        index.unshift({ name: '???', color: '#888888' });
+      }
+      saveToStorage('parts_index', index);
       alert("Parts restored. Open the Parts tab to review.");
     } catch (err) {
       alert("Error importing parts: " + err.message);
@@ -143,3 +181,32 @@ exportLogsBtn?.addEventListener('click', () => {
     });
   }
 });
+
+function applyImportedLogs(payload) {
+  const ensureArray = (value) => (Array.isArray(value) ? value : []);
+
+  let general = [];
+  let recent = [];
+  let archive = loadFromStorage('front_logs_archive', []);
+
+  if (Array.isArray(payload)) {
+    general = payload;
+  } else if (payload && typeof payload === 'object') {
+    general = ensureArray(payload.front_logs || payload.logs || payload.entries);
+    recent = ensureArray(payload.recent_logs || payload.recent);
+    if (payload.front_logs_archive || payload.archive) {
+      archive = ensureArray(payload.front_logs_archive || payload.archive);
+    }
+  }
+
+  if (!general.length) {
+    throw new Error('No logs found in file.');
+  }
+
+  saveToStorage('front_logs', general);
+  if (!recent.length) {
+    recent = general.slice(0, 5);
+  }
+  saveToStorage('recent_logs', recent);
+  saveToStorage('front_logs_archive', archive);
+}

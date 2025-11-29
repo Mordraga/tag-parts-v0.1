@@ -16,7 +16,9 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/camera": "latest",
     "@capacitor/core": "latest",
-    "@capacitor/splash-screen": "latest"
+    "@capacitor/splash-screen": "latest",
+    "dompurify": "^3.3.0",
+    "marked": "^17.0.1"
   },
   "devDependencies": {
     "@capacitor/cli": "latest",

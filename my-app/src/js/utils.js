@@ -1,5 +1,14 @@
 // utils.js
-import { loadFromStorage } from './storage.js';
+import { marked } from './vendor/marked.esm.js';
+import createDOMPurify from './vendor/purify.es.mjs';
+import { loadFromStorage, saveToStorage } from './storage.js';
+
+const DOMPurify = createDOMPurify(window);
+
+marked.setOptions({
+  breaks: true,
+  gfm: true
+});
 
 // Keys
 const PARTS_INDEX_KEY = 'parts_index';
@@ -9,7 +18,29 @@ const NEEDS_FALLBACK_SUGGESTIONS = typeof window !== 'undefined' && !!window.Cap
 
 // Parts helpers
 export function loadPartsIndex() {
-  return loadFromStorage(PARTS_INDEX_KEY, []);
+  const existing = loadFromStorage(PARTS_INDEX_KEY, []);
+  if (existing.length) {
+    if (!existing.some((part) => part?.name?.trim().toLowerCase() === '???')) {
+      existing.unshift({ name: '???', color: '#888888' });
+      saveToStorage(PARTS_INDEX_KEY, existing);
+    }
+    return existing;
+  }
+
+  const parts = loadFromStorage('parts_data', []);
+  if (!parts.length) {
+    return existing;
+  }
+
+  const rebuilt = parts
+    .filter((part) => part?.name)
+    .map((part) => ({ name: part.name, color: part.color }));
+  const names = new Set(rebuilt.map((part) => part.name.trim().toLowerCase()));
+  if (!names.has('???')) {
+    rebuilt.unshift({ name: '???', color: '#888888' });
+  }
+  saveToStorage(PARTS_INDEX_KEY, rebuilt);
+  return rebuilt;
 }
 
 export function findPartByName(name, partsIndex = loadPartsIndex()) {
@@ -133,33 +164,45 @@ function createFallbackSuggestions(inputEl) {
 
 // Mention parsing/highlighting
 const mentionRegex = /@([A-Za-z0-9_'`-]+)/g;
+const PLACEHOLDER_PREFIX = '__MENTION__';
 
 export function formatMentions(text = '', partsIndex = loadPartsIndex()) {
   if (!text) return { html: '', mentions: [] };
-  const mentions = [];
+  const mentionEntries = [];
   const map = Object.fromEntries(
     partsIndex.map((p) => [p.name.trim().toLowerCase(), p])
   );
 
-  let result = '';
-  let lastIndex = 0;
-  text.replace(mentionRegex, (match, name, offset) => {
-    result += escapeHtml(text.slice(lastIndex, offset));
-    lastIndex = offset + match.length;
+  let placeholderIndex = 0;
+  const textWithPlaceholders = text.replace(mentionRegex, (match, name) => {
     const key = name.trim().toLowerCase();
     const part = map[key];
-    if (part) {
-      mentions.push({ raw: match, name: part.name, color: part.color });
-      result += `<span class="mention" style="color:${part.color || '#6699cc'}">${escapeHtml(match)}</span>`;
-    } else {
-      result += escapeHtml(match);
+    if (!part) {
+      return match;
     }
-    return match;
+    const placeholder = `${PLACEHOLDER_PREFIX}${placeholderIndex++}__`;
+    mentionEntries.push({
+      placeholder,
+      raw: match,
+      name: part.name,
+      color: part.color
+    });
+    return placeholder;
   });
 
-  result += escapeHtml(text.slice(lastIndex));
-  result = result.replace(/\n/g, '<br>');
-  return { html: result, mentions };
+  const markdownHtml = marked.parse(textWithPlaceholders || '');
+  let html = DOMPurify.sanitize(markdownHtml || '');
+
+  mentionEntries.forEach((mention) => {
+    const color = mention.color || '#6699cc';
+    const replacement = `<span class="mention" style="color:${color}">${escapeHtml(
+      mention.raw
+    )}</span>`;
+    html = html.split(mention.placeholder).join(replacement);
+  });
+
+  const mentions = mentionEntries.map(({ placeholder, ...rest }) => rest);
+  return { html, mentions };
 }
 
 function escapeHtml(str = '') {
