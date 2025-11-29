@@ -15,6 +15,15 @@ const RECENT_LOG = 'recent_logs';
 const ARCHIVE_LOG = 'front_logs_archive';
 const RECENT_MAX = 5;
 
+function ensureEditAccess() {
+  const disabled = localStorage.getItem('disableLogEditing') === 'true';
+  if (disabled) {
+    alert('Log editing has been disabled in settings.');
+    return false;
+  }
+  return true;
+}
+
 function getTimestampFormat() {
   return localStorage.getItem('timestampFormat') === '24hr' ? '24hr' : '12hr';
 }
