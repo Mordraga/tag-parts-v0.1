@@ -22,8 +22,13 @@ export function initializeFileMirrors() {
       encoding: 'utf8'
     })
       .then((result) => {
-        if (result?.data && !localStorage.getItem(key)) {
+        if (result?.data) {
           localStorage.setItem(key, result.data);
+        } else {
+          const existing = localStorage.getItem(key);
+          if (existing) {
+            mirrorKeyToFile(key, existing);
+          }
         }
       })
       .catch(() => {
