@@ -110,7 +110,7 @@ function addRelationship(partA, partB, type, notes, internal, partsIndex) {
 function deleteRelationship(id) {
   if (!confirm('Delete this relationship?')) return;
   saveRelationships(getRelationships().filter(r => r.id !== id));
-  renderRelationships(currentFilter());
+  renderRelationships();
   showToast('Relationship removed.');
 }
 
@@ -121,11 +121,9 @@ function updateRelationship(id, updates) {
   saveRelationships(rels);
 }
 
-// ── Filter state ──────────────────────────────────────────────
+// ── Collapsed group state ─────────────────────────────────────
 
-function currentFilter() {
-  return (document.getElementById('relFilter')?.value || '').trim().toLowerCase();
-}
+const collapsedGroups = new Set();
 
 // ── Render ────────────────────────────────────────────────────
 
@@ -248,7 +246,7 @@ function buildRelEditForm(rel, partsIndex) {
 
     if (!newPartA || !newPartB || !newType) return;
     if (!findPartByName(newPartA, partsIndex)) {
-      alert(`"${newPartA}" not found in parts directory.`);
+      showToast(`"${newPartA}" not found in parts directory.`, 'error');
       return;
     }
 
@@ -256,34 +254,69 @@ function buildRelEditForm(rel, partsIndex) {
       partA: newPartA, partB: newPartB,
       type: newType, notes: newNotes, internal: newInternal
     });
-    renderRelationships(currentFilter());
+    renderRelationships();
   });
 
   return form;
 }
 
-function renderRelationships(filter = '') {
+function renderRelationships() {
   const container = document.getElementById('relationshipList');
   if (!container) return;
 
   const partsIndex = loadPartsIndex();
-  let rels = getRelationships();
-
-  if (filter) {
-    const needle = filter.toLowerCase();
-    rels = rels.filter(r =>
-      r.partA.toLowerCase().includes(needle) || r.partB.toLowerCase().includes(needle)
-    );
-  }
+  const rels = getRelationships();
 
   container.innerHTML = '';
 
   if (!rels.length) {
-    container.innerHTML = `<p style="color:var(--timestamp);font-style:italic;padding:8px 0">${filter ? 'No relationships match that filter.' : 'No relationships added yet.'}</p>`;
+    container.innerHTML = '<p style="color:var(--timestamp);font-style:italic;padding:8px 0">No relationships added yet.</p>';
     return;
   }
 
-  rels.forEach(rel => container.appendChild(createRelCard(rel, partsIndex)));
+  // Group by partA, sorted alphabetically
+  const groups = {};
+  rels.forEach(rel => {
+    const key = rel.partA || '?';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(rel);
+  });
+
+  Object.keys(groups).sort((a, b) => a.localeCompare(b)).forEach(partName => {
+    const groupRels = groups[partName];
+    const partData = findPartByName(partName, partsIndex);
+    const color = partData?.color || '#6699cc';
+    const isCollapsed = collapsedGroups.has(partName);
+
+    const header = document.createElement('div');
+    header.className = 'rel-group-header';
+    header.style.borderLeftColor = color;
+    header.innerHTML = `
+      <span class="rel-group-toggle">${isCollapsed ? '▶' : '▼'}</span>
+      <span class="rel-group-name">${escapeHtml(partName)}</span>
+      <span class="rel-group-count">${groupRels.length}</span>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'rel-group-body';
+    if (isCollapsed) body.classList.add('hidden');
+
+    header.addEventListener('click', () => {
+      if (collapsedGroups.has(partName)) {
+        collapsedGroups.delete(partName);
+        body.classList.remove('hidden');
+        header.querySelector('.rel-group-toggle').textContent = '▼';
+      } else {
+        collapsedGroups.add(partName);
+        body.classList.add('hidden');
+        header.querySelector('.rel-group-toggle').textContent = '▶';
+      }
+    });
+
+    groupRels.forEach(rel => body.appendChild(createRelCard(rel, partsIndex)));
+    container.appendChild(header);
+    container.appendChild(body);
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -293,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   attachPartSuggestions(document.getElementById('relPartA'));
   attachPartSuggestions(document.getElementById('relPartB'));
-  attachPartSuggestions(document.getElementById('relFilter'));
 
   document.getElementById('addRelBtn').addEventListener('click', () => {
     const partA    = document.getElementById('relPartA').value;
@@ -309,17 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('relPartB').value = '';
       document.getElementById('relNotes').value = '';
       document.getElementById('relInternal').checked = true;
-      renderRelationships(currentFilter());
+      renderRelationships();
     }
-  });
-
-  document.getElementById('relFilter').addEventListener('input', () => {
-    renderRelationships(currentFilter());
-  });
-
-  document.getElementById('clearFilterBtn').addEventListener('click', () => {
-    document.getElementById('relFilter').value = '';
-    renderRelationships('');
   });
 
   renderRelationships();

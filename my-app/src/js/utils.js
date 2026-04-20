@@ -215,12 +215,12 @@ function escapeHtml(str = '') {
 }
 
 // Lightweight toast for tips
-export function showToast(message, duration = 2500) {
+export function showToast(message, type = 'info', duration = 2500) {
   const existing = document.querySelector('.toast-tip');
   if (existing) existing.remove();
 
   const el = document.createElement('div');
-  el.className = 'toast-tip';
+  el.className = type === 'error' ? 'toast-tip error' : 'toast-tip';
   el.textContent = message;
   document.body.appendChild(el);
 

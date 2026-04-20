@@ -34,6 +34,7 @@ const refs = {
   filterContainer: null,
   clearFilter: null,
   filterSummary: null,
+  filterBadge: null,
   locationOptions: null
 };
 
@@ -58,6 +59,7 @@ function cacheElements() {
   refs.filterContainer = document.getElementById('filterControlContainer');
   refs.clearFilter = document.getElementById('clearFilter');
   refs.filterSummary = document.getElementById('filterSummary');
+  refs.filterBadge = document.getElementById('filterBadge');
   refs.locationOptions = document.getElementById('locationOptions');
 }
 
@@ -472,19 +474,29 @@ function isDateWithinRange(dateKey, range) {
 function updateFilterSummary() {
   if (!refs.filterSummary) return;
   const { type, value } = state.filter;
+
   if (!type) {
-    refs.filterSummary.textContent =
-      'Select a filter to highlight days with matching logs.';
+    refs.filterSummary.textContent = 'Select a filter to highlight days with matching logs.';
+    if (refs.filterBadge) refs.filterBadge.classList.add('hidden');
     return;
   }
 
   const matches = state.filteredDates.size;
   const descriptor = describeFilter(type, value);
+
+  if (refs.filterBadge) {
+    if (matches) {
+      refs.filterBadge.textContent = `🔍 ${descriptor} · ${matches} ${matches === 1 ? 'day' : 'days'}`;
+      refs.filterBadge.classList.remove('hidden');
+    } else {
+      refs.filterBadge.classList.add('hidden');
+    }
+  }
+
   if (!matches) {
     refs.filterSummary.textContent = `No days match ${descriptor} yet.`;
     return;
   }
-
   const label = matches === 1 ? 'day' : 'days';
   refs.filterSummary.textContent = `Highlighting ${matches} ${label} for ${descriptor}.`;
 }

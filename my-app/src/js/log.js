@@ -18,7 +18,7 @@ const RECENT_MAX = 5;
 function ensureEditAccess() {
   const disabled = localStorage.getItem('disableLogEditing') === 'true';
   if (disabled) {
-    alert('Log editing has been disabled in settings.');
+    showToast('Log editing has been disabled in settings.', 'error');
     return false;
   }
   return true;
@@ -322,7 +322,7 @@ function buildEditForm(log, containerId, type, refreshCallback) {
     const awareness = parseInt(form.querySelector('.edit-awareness').value, 10) || 5;
 
     if (!who || !where || !when) {
-      alert('Who, Where, and When are required.');
+      showToast('Who, Where, and When are required.', 'error');
       return;
     }
 

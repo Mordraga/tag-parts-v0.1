@@ -27,21 +27,19 @@
       <p id="relFormError" style="color:#a33;font-size:0.82rem;display:none"></p>
     </div>
 
-    <div class="rel-filter-row">
-      <input id="relFilter" type="text" placeholder="Filter by name..." autocomplete="off" />
-      <button id="clearFilterBtn" class="ghost-btn" style="white-space:nowrap">Clear</button>
-    </div>
-
     <section id="relationshipList"></section>
 
-    <nav>
-      <a href="loggys.html">📜</a>
-      <a href="parts.html">👥</a>
-      <a href="index.html">🏠</a>
-      <a href="messageBoard.html">💬</a>
-      <a href="relationships.html">🔗 Bonds</a>
-      <a href="Settings.html">⚙️</a>
-    </nav>
+  <nav>
+    <button id="nav-toggle" aria-label="Toggle navigation">☰</button>
+    <a href="index.html"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+    <a href="loggys.html"><span class="nav-icon">📜</span><span class="nav-label">Logs</span></a>
+    <a href="parts.html"><span class="nav-icon">👥</span><span class="nav-label">Parts</span></a>
+    <a href="messageBoard.html"><span class="nav-icon">💬</span><span class="nav-label">Threads</span></a>
+    <a href="relationships.html"><span class="nav-icon">🔗</span><span class="nav-label">Bonds</span></a>
+    <a href="journal.html"><span class="nav-icon">📓</span><span class="nav-label">Journal</span></a>
+    <a href="Settings.html"><span class="nav-icon">⚙️</span><span class="nav-label">Options</span></a>
+  </nav>
+  <div id="nav-overlay"></div>
 
     <script type="module" src="js/relationships.js"></script>
   </body>

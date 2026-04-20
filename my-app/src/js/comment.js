@@ -4,7 +4,8 @@ import {
   formatMentions,
   loadPartsIndex,
   findPartByName,
-  attachPartSuggestions
+  attachPartSuggestions,
+  showToast
 } from './utils.js';
 
 export function renderCommentSection(targetEl, commentKey, allowWrite = true) {
@@ -54,7 +55,7 @@ export function renderCommentSection(targetEl, commentKey, allowWrite = true) {
         const nextName = nameInput.value.trim();
         const nextMsg = msgInput.value.trim();
         if (!nextName || !nextMsg) {
-          alert('Both fields required.');
+          showToast('Both fields required.', 'error');
           return;
         }
         data[index] = {

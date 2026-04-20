@@ -1,6 +1,6 @@
 
 import { saveToStorage, loadFromStorage } from './storage.js';
-import { refreshPartSuggestions } from './utils.js';
+import { refreshPartSuggestions, showToast } from './utils.js';
 
 const STORAGE_KEY = 'parts_data';
 const INDEX_KEY = 'parts_index';
@@ -254,7 +254,7 @@ function handleSubmit(e) {
   const color = /^#[0-9a-fA-F]{6}$/.test(hexInput) ? hexInput : colorPicker;
 
   if (!name || !role) {
-    alert('Name and Role are required.');
+    showToast('Name and Role are required.', 'error');
     return;
   }
 
@@ -374,7 +374,7 @@ function buildEditForm(part, index) {
       private: form.querySelector('.edit-private').checked
     };
     if (!updates.name || !updates.role) {
-      alert('Name and Role are required.');
+      showToast('Name and Role are required.', 'error');
       return;
     }
     if (!/^#[0-9a-fA-F]{6}$/.test(updates.color)) {

@@ -212,7 +212,7 @@ function initJournalPage() {
 
   if (!partName) {
     document.getElementById('journalRoot').innerHTML =
-      '<p class="card" style="margin:24px">No part specified. <a href="parts.html">Go to Parts</a></p>';
+      '<div class="card" style="margin:24px;gap:12px"><p>No part specified.</p><a href="parts.html" class="btn-link">Go to Parts</a></div>';
     return;
   }
 
@@ -221,7 +221,7 @@ function initJournalPage() {
 
   if (!part) {
     document.getElementById('journalRoot').innerHTML =
-      `<p class="card" style="margin:24px">Part "${escapeHtml(partName)}" not found. <a href="parts.html">Go to Parts</a></p>`;
+      `<div class="card" style="margin:24px;gap:12px"><p>Part "${escapeHtml(partName)}" not found.</p><a href="parts.html" class="btn-link">Go to Parts</a></div>`;
     return;
   }
 

@@ -1,5 +1,9 @@
 import { loadFromStorage, saveToStorage } from './storage.js';
 import { getLogEntries, renderArchive } from './log.js';
+import { showToast } from './utils.js';
+import './nav.js';
+
+const BACKUP_KEYS = ['parts_data', 'parts_index', 'front_logs', 'recent_logs', 'front_logs_archive', 'relationships_data', 'threads_data', 'journal_data', 'journal_codes'];
 
 document.addEventListener('DOMContentLoaded', () => {
   const root = document.documentElement;
@@ -10,28 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportLogsBtn = document.getElementById('exportBtn');
   const importLogsBtn = document.getElementById('importLogsBtn');
   const importLogsInput = document.getElementById('importLogsInput');
-  const exportPartsBtn = document.getElementById('exportPartsBtn');
-  const importPartsBtn = document.getElementById('importPartsBtn');
-  const partsBackupArea = document.getElementById('partsBackupArea');
   const timestampSelect = document.getElementById('timestampFormat');
   const toggleArchiveBtn = document.getElementById('toggleArchiveBtn');
   const archiveContainer = document.getElementById('archiveContainer');
+  const backupAllBtn = document.getElementById('backupAllBtn');
+  const restoreAllBtn = document.getElementById('restoreAllBtn');
+  const restoreAllInput = document.getElementById('restoreAllInput');
 
   // === Theme: Dark Mode ===
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme === 'dark') {
     root.setAttribute('data-theme', 'dark');
-    if (darkToggle) {
-      darkToggle.checked = true;
-    }
+    if (darkToggle) darkToggle.checked = true;
   } else {
     root.setAttribute('data-theme', 'light');
   }
 
   if (darkToggle) {
     darkToggle.addEventListener('change', () => {
-      const enabled = darkToggle.checked;
-      const theme = enabled ? 'dark' : 'light';
+      const theme = darkToggle.checked ? 'dark' : 'light';
       root.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
     });
@@ -39,31 +40,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === Logs: Clear Logs ===
   clearLogsBtn?.addEventListener('click', () => {
-    if (!confirm("Are you sure you want to clear all logs?")) {
-      return;
-    }
+    if (!confirm("Are you sure you want to clear all logs?")) return;
     localStorage.removeItem('front_logs');
     localStorage.removeItem('recent_logs');
-    alert("Logs cleared.");
+    showToast("Logs cleared.");
   });
 
-// === Logs: Export Logs ===
-exportLogsBtn?.addEventListener('click', () => {
-  const logs = getLogEntries(); // gets from 'front_logs' by default
-  if (!logs || logs.length === 0) return alert("No logs to export.");
-
-  const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'front_logs.json';
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-  importLogsBtn?.addEventListener('click', () => {
-    importLogsInput?.click();
+  // === Logs: Export Logs ===
+  exportLogsBtn?.addEventListener('click', () => {
+    const logs = getLogEntries();
+    if (!logs || logs.length === 0) { showToast("No logs to export.", 'error'); return; }
+    const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'front_logs.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("Logs exported.");
   });
+
+  importLogsBtn?.addEventListener('click', () => importLogsInput?.click());
 
   importLogsInput?.addEventListener('change', (event) => {
     const file = event.target.files?.[0];
@@ -73,82 +70,59 @@ exportLogsBtn?.addEventListener('click', () => {
       try {
         const payload = JSON.parse(reader.result);
         applyImportedLogs(payload);
-        alert('Logs imported.');
+        showToast('Logs imported.');
         if (archiveContainer && !archiveContainer.classList.contains('hidden')) {
           renderArchive('archiveContainer');
         }
       } catch (err) {
-        alert('Error importing logs: ' + err.message);
+        showToast('Error importing logs: ' + err.message, 'error');
       } finally {
         event.target.value = '';
       }
     };
     reader.onerror = () => {
-      alert('Unable to read selected file.');
+      showToast('Unable to read selected file.', 'error');
       event.target.value = '';
     };
     reader.readAsText(file);
   });
 
-  // === Parts: Export ===
-  exportPartsBtn?.addEventListener('click', async () => {
-    const parts = loadFromStorage('parts_data');
-    if (!parts || parts.length === 0) {
-      if (partsBackupArea) {
-        partsBackupArea.value = '';
-      }
-      alert("No parts to export.");
-      return;
-    }
-
-    const json = JSON.stringify(parts, null, 2);
-    if (partsBackupArea) {
-      partsBackupArea.value = json;
-    }
-
-    let copied = false;
-    if (navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(json);
-        copied = true;
-      } catch (err) {
-        console.warn('Clipboard copy failed:', err);
-      }
-    }
-
-    alert(copied ? "Parts JSON copied to clipboard." : "Parts JSON updated in the backup box.");
+  // === Backup All ===
+  backupAllBtn?.addEventListener('click', () => {
+    const payload = {};
+    BACKUP_KEYS.forEach(k => {
+      const v = localStorage.getItem(k);
+      if (v) { try { payload[k] = JSON.parse(v); } catch { payload[k] = v; } }
+    });
+    const date = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `front_tracker_backup_${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Backup saved!');
   });
 
-  // === Parts: Import ===
-  importPartsBtn?.addEventListener('click', () => {
-    if (!partsBackupArea) {
-      alert("Backup box not found.");
-      return;
-    }
+  // === Restore All ===
+  restoreAllBtn?.addEventListener('click', () => restoreAllInput?.click());
 
-    const raw = partsBackupArea.value.trim();
-    if (!raw) {
-      alert("Paste parts JSON into the backup box first.");
-      return;
-    }
-
-    try {
-      const parts = JSON.parse(raw);
-      if (!Array.isArray(parts)) {
-        throw new Error("Invalid parts format.");
-      }
-      saveToStorage('parts_data', parts);
-      const index = parts
-        .filter((part) => part?.name)
-        .map((part) => ({ name: part.name, color: part.color }));
-      if (!index.some((part) => part?.name?.trim().toLowerCase() === '???')) {
-        index.unshift({ name: '???', color: '#888888' });
-      }
-      saveToStorage('parts_index', index);
-      alert("Parts restored. Open the Parts tab to review.");
-    } catch (err) {
-      alert("Error importing parts: " + err.message);
-    }
+  restoreAllInput?.addEventListener('change', e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const payload = JSON.parse(reader.result);
+        BACKUP_KEYS.forEach(k => {
+          if (payload[k] !== undefined) localStorage.setItem(k, JSON.stringify(payload[k]));
+        });
+        showToast('Restore complete! Reload to see your data.');
+      } catch { showToast('Could not read backup file.', 'error'); }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
   });
 
   // === UI: Timestamp Format ===
@@ -158,13 +132,6 @@ exportLogsBtn?.addEventListener('click', () => {
     timestampSelect.addEventListener('change', () => {
       localStorage.setItem('timestampFormat', timestampSelect.value);
     });
-  }
-
-  if (partsBackupArea) {
-    const existingParts = loadFromStorage('parts_data');
-    if (existingParts && existingParts.length) {
-      partsBackupArea.value = JSON.stringify(existingParts, null, 2);
-    }
   }
 
   if (toggleArchiveBtn && archiveContainer) {
@@ -184,7 +151,6 @@ exportLogsBtn?.addEventListener('click', () => {
 
 function applyImportedLogs(payload) {
   const ensureArray = (value) => (Array.isArray(value) ? value : []);
-
   let general = [];
   let recent = [];
   let archive = loadFromStorage('front_logs_archive', []);
@@ -199,14 +165,10 @@ function applyImportedLogs(payload) {
     }
   }
 
-  if (!general.length) {
-    throw new Error('No logs found in file.');
-  }
+  if (!general.length) throw new Error('No logs found in file.');
 
   saveToStorage('front_logs', general);
-  if (!recent.length) {
-    recent = general.slice(0, 5);
-  }
+  if (!recent.length) recent = general.slice(0, 5);
   saveToStorage('recent_logs', recent);
   saveToStorage('front_logs_archive', archive);
 }

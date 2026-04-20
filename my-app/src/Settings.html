@@ -27,36 +27,34 @@
   </div>
 
   <div class="card settings-card">
-    <h3>💾 Data</h3>
-    <div class="card settings-card">
-      <h4>Parts</h4>
-      <p>Use the backup box to copy or paste your parts JSON.</p>
-      <textarea id="partsBackupArea" rows="6" placeholder="Parts JSON will appear here"></textarea>
-      <div class="row">
-        <button id="exportPartsBtn">Copy Parts</button>
-        <button id="importPartsBtn">Restore Parts</button>
-      </div>
-    </div>
-    
-    <div class="card settings-card">
-      <h4>Logs</h4>
-      <button id="exportBtn">Export Logs</button>
-      <button id="importLogsBtn">Import Logs</button>
-      <input type="file" id="importLogsInput" accept="application/json" class="sr-only" />
-      <button id="clearLogsBtn" class="danger">Clear Logs</button>
-      <button id="toggleArchiveBtn">Show Archive</button>
-      <div id="archiveContainer" class="archive-container hidden"></div>
-    </div>
-   </div>
+    <h3>💾 Backup & Restore</h3>
+    <p>Save everything or restore from a previous backup — no JSON needed.</p>
+    <button id="backupAllBtn" class="btn-block">💾 Back Up Everything</button>
+    <button id="restoreAllBtn" class="btn-block">📂 Restore from Backup</button>
+    <input type="file" id="restoreAllInput" accept="application/json" class="sr-only" />
+  </div>
+
+  <div class="card settings-card">
+    <h3>📋 Logs</h3>
+    <button id="exportBtn">Export Logs</button>
+    <button id="importLogsBtn">Import Logs</button>
+    <input type="file" id="importLogsInput" accept="application/json" class="sr-only" />
+    <button id="clearLogsBtn" class="danger">Clear Logs</button>
+    <button id="toggleArchiveBtn">Show Archive</button>
+    <div id="archiveContainer" class="archive-container hidden"></div>
+  </div>
 
   <nav>
-      <a href="loggys.html">📜</a>
-      <a href="parts.html">👥</a>
-      <a href="index.html">🏠</a>
-      <a href="messageBoard.html">💬</a>
-      <a href="relationships.html">🔗</a>
-      <a href="Settings.html">⚙️ Options</a>
-    </nav>
+    <button id="nav-toggle" aria-label="Toggle navigation">☰</button>
+    <a href="index.html"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+    <a href="loggys.html"><span class="nav-icon">📜</span><span class="nav-label">Logs</span></a>
+    <a href="parts.html"><span class="nav-icon">👥</span><span class="nav-label">Parts</span></a>
+    <a href="messageBoard.html"><span class="nav-icon">💬</span><span class="nav-label">Threads</span></a>
+    <a href="relationships.html"><span class="nav-icon">🔗</span><span class="nav-label">Bonds</span></a>
+    <a href="journal.html"><span class="nav-icon">📓</span><span class="nav-label">Journal</span></a>
+    <a href="Settings.html"><span class="nav-icon">⚙️</span><span class="nav-label">Options</span></a>
+  </nav>
+  <div id="nav-overlay"></div>
 
   <script type="module" src="js/settings.js"></script>
 </body>

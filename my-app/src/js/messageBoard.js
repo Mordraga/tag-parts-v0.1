@@ -6,7 +6,8 @@ import {
   formatMentions,
   loadPartsIndex,
   findPartByName,
-  attachPartSuggestions
+  attachPartSuggestions,
+  showToast
 } from './utils.js';
 
 const STORAGE_KEY = 'board_threads';
@@ -205,7 +206,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const subjectInput = document.getElementById('input-subject');
       const subject = subjectInput.value.trim();
       if (!subject) {
-        alert('Subject is required.');
+        showToast('Subject is required.', 'error');
         return;
       }
       addThread(partValue, subject);

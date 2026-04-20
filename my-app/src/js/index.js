@@ -1,6 +1,6 @@
 // index.js
 import { addLogEntry, renderLogs } from './log.js';
-import { attachPartSuggestions } from './utils.js';
+import { attachPartSuggestions, showToast } from './utils.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   console.log("[index.js] loaded");
@@ -39,7 +39,7 @@ function logEntry() {
   const awareness = parseInt(document.getElementById('aware').value, 10);
 
   if (!who || !where || !when) {
-    alert("Please fill out who, where, and when.");
+    showToast("Please fill out who, where, and when.", 'error');
     return;
   }
 
@@ -54,6 +54,7 @@ function logEntry() {
 
   addLogEntry(entry);
   renderLogs('logDisplay', 'recent_logs');
+  showToast("Entry logged!");
 
   // Clear form
   document.getElementById('who').value = '';
