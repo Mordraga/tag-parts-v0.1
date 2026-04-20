@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bonds</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="js/settings.js" type="module"></script>
+  </head>
+  <body>
+    <h2>Bonds</h2>
+
+    <div class="card" id="addRelForm">
+      <h3 class="form-header">🔗 Add a Relationship</h3>
+
+      <input id="relPartA" type="text" placeholder="Part (required)" autocomplete="off" />
+      <input id="relType" type="text" placeholder="Relationship description (e.g. trusts, scared of...)" autocomplete="off" />
+      <input id="relPartB" type="text" placeholder="With..." autocomplete="off" />
+      <textarea id="relNotes" rows="2" placeholder="Notes (optional)"></textarea>
+
+      <div class="row">
+        <label for="relInternal">Internal (system only)</label>
+        <input type="checkbox" id="relInternal" checked />
+      </div>
+
+      <button id="addRelBtn">Add</button>
+      <p id="relFormError" style="color:#a33;font-size:0.82rem;display:none"></p>
+    </div>
+
+    <div class="rel-filter-row">
+      <input id="relFilter" type="text" placeholder="Filter by name..." autocomplete="off" />
+      <button id="clearFilterBtn" class="ghost-btn" style="white-space:nowrap">Clear</button>
+    </div>
+
+    <section id="relationshipList"></section>
+
+    <nav>
+      <a href="loggys.html">📜</a>
+      <a href="parts.html">👥</a>
+      <a href="index.html">🏠</a>
+      <a href="messageBoard.html">💬</a>
+      <a href="relationships.html">🔗 Bonds</a>
+      <a href="Settings.html">⚙️</a>
+    </nav>
+
+    <script type="module" src="js/relationships.js"></script>
+  </body>
+</html>

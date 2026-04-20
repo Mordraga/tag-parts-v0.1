@@ -153,12 +153,70 @@ function renderParts() {
     deleteBtn.textContent = 'Delete';
     deleteBtn.onclick = () => deletePart(index);
 
+    const journalBtn = document.createElement('button');
+    journalBtn.type = 'button';
+    journalBtn.textContent = '📓 Journal';
+    journalBtn.onclick = () => {
+      window.location.href = 'journal.html?part=' + encodeURIComponent(part.name);
+    };
+
+    const setCodeBtn = document.createElement('button');
+    setCodeBtn.type = 'button';
+    setCodeBtn.textContent = '🔑 Set Code';
+    setCodeBtn.onclick = () => {
+      const existing = div.querySelector('.journal-code-form');
+      if (existing) { existing.remove(); return; }
+      const form = buildJournalCodeForm(part);
+      div.appendChild(form);
+    };
+
     actions.appendChild(editBtn);
     actions.appendChild(deleteBtn);
+    actions.appendChild(journalBtn);
+    actions.appendChild(setCodeBtn);
     div.appendChild(actions);
 
     container.appendChild(div);
   });
+}
+
+function saveJournalCode(partName, code) {
+  const codes = loadFromStorage('journal_codes', {});
+  codes[partName] = btoa('tagparts:' + partName.toLowerCase() + ':' + code);
+  saveToStorage('journal_codes', codes);
+}
+
+function buildJournalCodeForm(part) {
+  const codes = loadFromStorage('journal_codes', {});
+  const hasCode = !!codes[part.name];
+
+  const form = document.createElement('div');
+  form.className = 'journal-code-form';
+
+  form.innerHTML = `
+    <p>${hasCode ? 'Change the private code for this journal.' : 'Set a private code for this journal.'}</p>
+    <input type="password" class="jcode-input" placeholder="New code" autocomplete="off" />
+    <input type="password" class="jcode-confirm" placeholder="Confirm code" autocomplete="off" />
+    <p class="jcode-error" style="color:#a33;font-size:0.82rem;display:none">Codes don't match.</p>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="jcode-save-btn">Save Code</button>
+      <button type="button" class="jcode-cancel-btn ghost-btn">Cancel</button>
+    </div>
+  `;
+
+  form.querySelector('.jcode-save-btn').addEventListener('click', () => {
+    const a = form.querySelector('.jcode-input').value;
+    const b = form.querySelector('.jcode-confirm').value;
+    const err = form.querySelector('.jcode-error');
+    if (!a.trim()) return;
+    if (a !== b) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    saveJournalCode(part.name, a);
+    form.remove();
+  });
+
+  form.querySelector('.jcode-cancel-btn').addEventListener('click', () => form.remove());
+  return form;
 }
 
 function getTextColor(hex) {

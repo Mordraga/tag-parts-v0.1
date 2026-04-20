@@ -1,6 +1,4 @@
 import { defineConfig } from 'vite';
-
-import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
@@ -16,6 +14,8 @@ export default defineConfig({
         loggys: resolve(__dirname, 'src/loggys.html'),
         messageBoard: resolve(__dirname, 'src/messageBoard.html'),
         settings: resolve(__dirname, 'src/Settings.html'),
+        relationships: resolve(__dirname, 'src/relationships.html'),
+        journal: resolve(__dirname, 'src/journal.html'),
       },
     },
   },

@@ -4,7 +4,9 @@ const FILE_MAP = {
   front_logs: 'front_logs.json',
   recent_logs: 'recent_logs.json',
   front_logs_archive: 'front_logs_archive.json',
-  parts_data: 'parts.json'
+  parts_data: 'parts.json',
+  journal_codes: 'journal_codes.json',
+  relationships_data: 'relationships.json',
 };
 
 function getFilesystem() {
@@ -48,8 +50,16 @@ export function initializeFileMirrors() {
 
 export function mirrorKeyToFile(key, rawJson) {
   const fs = getFilesystem();
-  const filename = FILE_MAP[key];
-  if (!fs || !filename) return;
+  if (!fs) return;
+
+  let filename = FILE_MAP[key];
+
+  if (!filename && key.startsWith('journal_entries_')) {
+    const safeName = key.slice('journal_entries_'.length).replace(/[^a-zA-Z0-9_-]/g, '_');
+    filename = `journal_entries_${safeName}.json`;
+  }
+
+  if (!filename) return;
 
   if (rawJson === null) {
     fs.deleteFile({ path: filename, directory: DIRECTORY }).catch(() => {});

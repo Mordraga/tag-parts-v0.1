@@ -318,12 +318,12 @@ nav a {
   width: fill;
   font-weight: bold;
   text-decoration: none;
-  font-size: 18px;
+  font-size: 15px;
   border: 1px solid;
   border-radius: var(--radius);
   border-color: #333;
-  padding: 5px;
-  background-color: #6b60bb; 
+  padding: 4px;
+  background-color: #6b60bb;
 }
 /* ========== Settings ========== */
 .settings-card {
@@ -743,4 +743,206 @@ nav a {
 [data-theme='dark'] .calendar-cell:hover {
   border-color: #8ab5ff;
   box-shadow: 0 2px 6px rgba(138, 181, 255, 0.35);
+}
+
+/* ========== Part Chips ========== */
+.part-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 0.88rem;
+  border: 2px solid;
+  white-space: nowrap;
+}
+
+.part-chip .part-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.part-chip.unknown-part {
+  border-color: #aaa;
+  background: rgba(150,150,150,0.12);
+  color: #888;
+}
+
+/* ========== Relationship Cards ========== */
+.relationship-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rel-chips-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rel-type-label {
+  font-size: 0.82rem;
+  color: var(--timestamp);
+  font-style: italic;
+}
+
+.rel-notes {
+  font-size: 0.88rem;
+  color: var(--timestamp);
+  font-style: italic;
+  margin: 0;
+}
+
+.rel-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rel-timestamp {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--timestamp);
+}
+
+.rel-edit-form {
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+[data-theme='dark'] .relationship-card {
+  background: #1e1e1e;
+}
+
+[data-theme='dark'] .rel-edit-form {
+  background: #161616;
+  border-color: #3a3a3a;
+}
+
+/* ========== Relationships Page ========== */
+.rel-filter-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.rel-filter-row input {
+  flex: 1;
+}
+
+/* ========== Journal Gate ========== */
+.journal-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 16px;
+  text-align: center;
+  padding: 24px;
+}
+
+.journal-gate h2 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.journal-gate .gate-accent {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.journal-gate input[type='password'] {
+  text-align: center;
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+  max-width: 200px;
+  width: 100%;
+}
+
+.gate-error {
+  color: #c0392b;
+  font-size: 0.88rem;
+  min-height: 1.2em;
+}
+
+.gate-error.hidden {
+  visibility: hidden;
+}
+
+/* ========== Journal Page ========== */
+.journal-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.journal-part-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.journal-part-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.journal-color-bar {
+  width: 14px;
+  height: 36px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* Journal Set-Code inline form on part cards */
+.journal-code-form {
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+[data-theme='dark'] .journal-code-form {
+  background: #161616;
+  border-color: #3a3a3a;
+}
+
+.journal-code-form p {
+  font-size: 0.82rem;
+  color: var(--timestamp);
+  margin: 0;
 }
