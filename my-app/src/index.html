@@ -11,7 +11,12 @@
 
   <h2>📦 Who's Fronting?</h2>
   <div class="card">
-    <input id="who" placeholder="Who are you? (required)" />
+    <div id="who-container">
+      <div class="who-field">
+        <input class="who-input" placeholder="Who are you? (required)" />
+      </div>
+    </div>
+    <button type="button" id="add-cofronter">+ Add co-fronter</button>
     <input id="where" placeholder="Where are you? (required)" />
     <input id="when" placeholder="What time is it? (required)" />
   
@@ -34,14 +39,15 @@
   <div class="log-entry" id="logDisplay">
   </div>
   
+  <button id="nav-toggle" aria-label="Toggle navigation">›</button>
   <nav>
-    <button id="nav-toggle" aria-label="Toggle navigation">☰</button>
     <a href="index.html"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
     <a href="loggys.html"><span class="nav-icon">📜</span><span class="nav-label">Logs</span></a>
     <a href="parts.html"><span class="nav-icon">👥</span><span class="nav-label">Parts</span></a>
     <a href="messageBoard.html"><span class="nav-icon">💬</span><span class="nav-label">Threads</span></a>
     <a href="relationships.html"><span class="nav-icon">🔗</span><span class="nav-label">Bonds</span></a>
     <a href="journal.html"><span class="nav-icon">📓</span><span class="nav-label">Journal</span></a>
+    <a href="analytics.html"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></a>
     <a href="Settings.html"><span class="nav-icon">⚙️</span><span class="nav-label">Options</span></a>
   </nav>
   <div id="nav-overlay"></div>

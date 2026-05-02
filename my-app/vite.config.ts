@@ -16,6 +16,7 @@ export default defineConfig({
         settings: resolve(__dirname, 'src/Settings.html'),
         relationships: resolve(__dirname, 'src/relationships.html'),
         journal: resolve(__dirname, 'src/journal.html'),
+        analytics: resolve(__dirname, 'src/analytics.html'),
       },
     },
   },

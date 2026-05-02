@@ -10,6 +10,11 @@ import {
   showToast
 } from './utils.js';
 
+function formatWho(who) {
+  if (!Array.isArray(who) || who.length === 1) return Array.isArray(who) ? who[0] : who;
+  return `${who[0]}<br><span class="cofronter-list">+ ${who.slice(1).join(', ')}</span>`;
+}
+
 const GENERAL_LOG = 'front_logs';
 const RECENT_LOG = 'recent_logs';
 const ARCHIVE_LOG = 'front_logs_archive';
@@ -97,7 +102,7 @@ function normalizeLog(entry, partsIndex = loadPartsIndex(), tracker) {
     tracker.changed = true;
   }
 
-  const part = findPartByName(normalized.who, partsIndex);
+  const part = findPartByName(Array.isArray(normalized.who) ? normalized.who[0] : normalized.who, partsIndex);
   const nextRef = part ? part.name : null;
   const nextColor = part ? part.color || '#6699cc' : null;
   if (normalized.partRef !== nextRef) {
@@ -292,7 +297,8 @@ function buildEditForm(log, containerId, type, refreshCallback) {
   const form = document.createElement('div');
   form.className = 'log-edit-form';
   form.innerHTML = `
-    <input type="text" class="edit-who" placeholder="Who" value="${log.who}" />
+    <div class="edit-who-container"></div>
+    <button type="button" class="edit-add-cofronter">+ co-fronter</button>
     <input type="text" class="edit-where" placeholder="Where" value="${log.where}" />
     <input type="text" class="edit-when" placeholder="When" value="${log.when}" />
     <textarea class="edit-msg" placeholder="Message">${log.msg || ''}</textarea>
@@ -305,23 +311,53 @@ function buildEditForm(log, containerId, type, refreshCallback) {
     </div>
   `;
 
+  const whoContainer = form.querySelector('.edit-who-container');
+  const whoValues = Array.isArray(log.who) ? log.who : [log.who || ''];
+
+  function addEditWhoRow(value, isPrimary) {
+    const row = document.createElement('div');
+    row.className = 'who-field';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-who-input';
+    input.placeholder = isPrimary ? 'Who (required)' : 'Co-fronter';
+    input.value = value;
+    row.appendChild(input);
+    if (!isPrimary) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'who-remove-btn';
+      btn.textContent = '−';
+      btn.addEventListener('click', () => row.remove());
+      row.appendChild(btn);
+    }
+    whoContainer.appendChild(row);
+    attachPartSuggestions(input);
+  }
+
+  whoValues.forEach((v, i) => addEditWhoRow(v, i === 0));
+
+  form.querySelector('.edit-add-cofronter').addEventListener('click', () => {
+    addEditWhoRow('', false);
+  });
+
   const saveBtn = form.querySelector('.save-edit');
   const cancelBtn = form.querySelector('.cancel-edit');
-  const whoInput = form.querySelector('.edit-who');
-  attachPartSuggestions(whoInput);
 
   cancelBtn.addEventListener('click', () => {
     form.remove();
   });
 
   saveBtn.addEventListener('click', () => {
-    const who = form.querySelector('.edit-who').value.trim();
+    const editWhoValues = [...form.querySelectorAll('.edit-who-input')]
+      .map(el => el.value.trim()).filter(Boolean);
+    const who = editWhoValues.length > 1 ? editWhoValues : editWhoValues[0] ?? '';
     const where = form.querySelector('.edit-where').value.trim();
     const when = form.querySelector('.edit-when').value.trim();
     const msg = form.querySelector('.edit-msg').value.trim();
     const awareness = parseInt(form.querySelector('.edit-awareness').value, 10) || 5;
 
-    if (!who || !where || !when) {
+    if (!editWhoValues.length || !where || !when) {
       showToast('Who, Where, and When are required.', 'error');
       return;
     }
@@ -359,7 +395,7 @@ export function renderLogEntries(logs, container, options = {}) {
 function createLogEntryElement(log, partsIndex, options = {}) {
   const div = document.createElement('div');
   div.className = 'log-entry';
-  const part = findPartByName(log.who, partsIndex);
+  const part = findPartByName(Array.isArray(log.who) ? log.who[0] : log.who, partsIndex);
   const color = log.partColor || part?.color;
   if (color) {
     div.style.borderLeftColor = color;
@@ -370,7 +406,7 @@ function createLogEntryElement(log, partsIndex, options = {}) {
   const mentionData = formatMentions(log.msg || '', partsIndex);
   const timestampLabel = log.timestamp ? formatTimestamp(log.timestamp) : '';
   logContent.innerHTML = `
-      <p><strong>Who:</strong> ${log.who}</p>
+      <p><strong>Who:</strong> ${formatWho(log.who)}</p>
       <p><strong>Where:</strong> ${log.where}</p>
       <p><strong>When:</strong> ${log.when}</p>
       <p><strong>Awareness:</strong> ${log.awareness}</p>
@@ -455,7 +491,7 @@ export function renderArchive(containerId) {
   logs.forEach((log) => {
     const div = document.createElement('div');
     div.className = 'log-entry';
-    const part = findPartByName(log.who, partsIndex);
+    const part = findPartByName(Array.isArray(log.who) ? log.who[0] : log.who, partsIndex);
     const color = log.partColor || part?.color;
     if (color) {
       div.style.borderLeftColor = color;
@@ -464,7 +500,7 @@ export function renderArchive(containerId) {
     const mentionData = formatMentions(log.msg || '', partsIndex);
     div.innerHTML = `
       <div class="log-content">
-        <p>👤 <strong>Who:</strong> ${log.who}</p>
+        <p>👤 <strong>Who:</strong> ${formatWho(log.who)}</p>
         <p>📍 <strong>Where:</strong> ${log.where}</p>
         <p>🕒 <strong>When:</strong> ${log.when}</p>
         ${log.msg ? `<p>💬 <strong>Message:</strong> ${mentionData.html}</p>` : ''}

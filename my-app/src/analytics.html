@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,27 +8,17 @@
   <script src="js/settings.js" type="module"></script>
 </head>
 <body>
-  <h2>
-    Message board
-  </h2>
-<div class="card" id="thread-form">
-  <div class="row">
-    <label for="input-part">Who is making this thread?</label>
-    <input type="text" id="input-part" placeholder="Type or pick a part" />
-  </div>
 
-  <label>Subject:
-    <input type="text" id="input-subject" placeholder="What's this about?">
-  </label><br>
-
-  <button id="post-thread-btn">Post</button>
-</div>
-  
-  <div>
-    <div id="message-board">
-    </div>
+  <h2>📊 Stats</h2>
+  <div id="period-bar" class="period-bar">
+    <button data-period="day">Day</button>
+    <button data-period="week">Week</button>
+    <button data-period="month">Month</button>
+    <button data-period="year">Year</button>
+    <button data-period="all">All</button>
   </div>
-  
+  <div id="analyticsRoot"></div>
+
   <button id="nav-toggle" aria-label="Toggle navigation">›</button>
   <nav>
     <a href="index.html"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
@@ -42,7 +31,7 @@
     <a href="Settings.html"><span class="nav-icon">⚙️</span><span class="nav-label">Options</span></a>
   </nav>
   <div id="nav-overlay"></div>
-  
+
+  <script type="module" src="js/analytics.js"></script>
 </body>
-<script type="module" src="js/messageBoard.js"></script>
 </html>

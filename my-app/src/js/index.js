@@ -16,8 +16,8 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const whoInput = document.getElementById('who');
-  attachPartSuggestions(whoInput);
+  attachPartSuggestions(document.querySelector('.who-input'));
+  document.getElementById('add-cofronter').addEventListener('click', addCoFronterField);
 
   // Load logs on page load
   renderLogs('logDisplay', 'recent_logs');
@@ -29,16 +29,34 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+function addCoFronterField() {
+  const row = document.createElement('div');
+  row.className = 'who-field';
+  const input = document.createElement('input');
+  input.className = 'who-input';
+  input.placeholder = 'Co-fronter name';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'who-remove-btn';
+  btn.textContent = '−';
+  btn.addEventListener('click', () => row.remove());
+  row.append(input, btn);
+  document.getElementById('who-container').appendChild(row);
+  attachPartSuggestions(input);
+}
+
 function logEntry() {
   console.log("[logEntry] called");
 
-  const who = document.getElementById('who').value.trim();
+  const whoValues = [...document.querySelectorAll('.who-input')]
+    .map(el => el.value.trim()).filter(Boolean);
+  const who = whoValues.length > 1 ? whoValues : whoValues[0] ?? '';
   const where = document.getElementById('where').value.trim();
   const when = document.getElementById('when').value.trim();
   const msg = document.getElementById('msg').value.trim();
   const awareness = parseInt(document.getElementById('aware').value, 10);
 
-  if (!who || !where || !when) {
+  if (!whoValues.length || !where || !when) {
     showToast("Please fill out who, where, and when.", 'error');
     return;
   }
@@ -57,7 +75,9 @@ function logEntry() {
   showToast("Entry logged!");
 
   // Clear form
-  document.getElementById('who').value = '';
+  const whoContainer = document.getElementById('who-container');
+  whoContainer.querySelectorAll('.who-field:not(:first-child)').forEach(r => r.remove());
+  whoContainer.querySelector('.who-input').value = '';
   document.getElementById('where').value = '';
   document.getElementById('when').value = '';
   document.getElementById('msg').value = '';

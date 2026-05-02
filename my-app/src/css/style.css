@@ -37,7 +37,7 @@ body {
   color: var(--text);
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  padding: 20px 20px 20px 72px;
+  padding: 20px 20px 20px 8px;
   max-width: 860px;
 }
 
@@ -308,7 +308,7 @@ nav {
   top: 0;
   left: 0;
   height: 100%;
-  width: 54px;
+  width: 0;
   background: var(--nav-bg);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -324,15 +324,29 @@ nav {
 }
 
 #nav-toggle {
-  background: transparent;
-  border: none;
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--nav-link);
-  font-size: 22px;
+  border: none;
+  border-radius: 0 8px 8px 0;
+  font-size: 20px;
   cursor: pointer;
-  padding: 14px 0 14px 15px;
-  text-align: left;
-  width: 100%;
-  flex-shrink: 0;
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar-open #nav-toggle {
+  transform: translateY(-50%) scaleX(-1);
 }
 
 nav a {
@@ -1102,4 +1116,264 @@ a.btn-link:hover {
 
 .filter-badge.hidden {
   display: none;
+}
+
+/* ========== Co-fronting Display ========== */
+.cofronter-list {
+  display: block;
+  font-size: 0.82em;
+  opacity: 0.65;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+/* ========== Co-fronting Fields ========== */
+#who-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.who-field {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.who-field .who-input {
+  flex: 1;
+}
+
+.who-remove-btn {
+  width: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#add-cofronter {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 14px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.edit-who-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-who-container .who-field input {
+  font-size: 14px;
+  padding: 7px 9px;
+}
+
+.edit-who-container .who-remove-btn {
+  font-size: 16px;
+  height: 34px;
+}
+
+.edit-add-cofronter {
+  width: auto;
+  padding: 4px 10px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-bottom: 2px;
+}
+
+/* ========== Analytics ========== */
+.analytics-summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.analytics-summary .summary-item {
+  flex: 1;
+  min-width: 90px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.summary-item .summary-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.summary-item .summary-label {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+.analytics-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.analytics-card h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+}
+
+.stat-label {
+  min-width: 90px;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stat-bar-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-bar {
+  height: 14px;
+  background: var(--accent);
+  border-radius: 4px;
+  min-width: 2px;
+  transition: width 0.4s ease;
+}
+
+.stat-count {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+.empty-state {
+  opacity: 0.5;
+  font-size: 0.88rem;
+  padding: 4px 0;
+}
+
+.period-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.period-bar button {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  min-width: 48px;
+}
+
+.period-bar button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.context-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.context-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  flex-wrap: wrap;
+}
+
+.context-name {
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.context-detail {
+  opacity: 0.75;
+  background: var(--input-bg);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.82rem;
+}
+
+/* ========== Reminder Settings ========== */
+.reminder-slots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.slot-btn {
+  flex: 1;
+  padding: 10px 6px;
+  font-size: 0.88rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.slot-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.reminder-enable-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.reminder-enable-btn.active {
+  background: var(--accent);
+  color: #fff;
 }

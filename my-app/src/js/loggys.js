@@ -439,8 +439,8 @@ function matchesFilter(log) {
       if (!value) return false;
       const target = value.trim().toLowerCase();
       const partRef = (log.partRef || '').trim().toLowerCase();
-      const who = (log.who || '').trim().toLowerCase();
-      return partRef === target || who === target;
+      const whoList = Array.isArray(log.who) ? log.who : [log.who || ''];
+      return partRef === target || whoList.some(w => w.trim().toLowerCase() === target);
     }
     case FILTER_TYPES.DATE:
       return (

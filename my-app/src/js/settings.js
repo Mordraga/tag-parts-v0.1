@@ -2,6 +2,7 @@ import { loadFromStorage, saveToStorage } from './storage.js';
 import { getLogEntries, renderArchive } from './log.js';
 import { showToast } from './utils.js';
 import './nav.js';
+import { requestPermission, scheduleReminders, cancelReminders, initReminders } from './notifications.js';
 
 const BACKUP_KEYS = ['parts_data', 'parts_index', 'front_logs', 'recent_logs', 'front_logs_archive', 'relationships_data', 'threads_data', 'journal_data', 'journal_codes'];
 
@@ -146,6 +147,52 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleArchiveBtn.textContent = 'Show Archive';
       }
     });
+  }
+
+  // === Check-in Reminders ===
+  const reminderToggle = document.getElementById('reminder-toggle');
+  const slotBtns = document.querySelectorAll('.slot-btn');
+
+  if (reminderToggle) {
+    let enabled = localStorage.getItem('reminder_enabled') === 'true';
+    let slots = JSON.parse(localStorage.getItem('reminder_slots') || '[]');
+
+    function syncUI() {
+      slotBtns.forEach(b => b.classList.toggle('active', slots.includes(b.dataset.slot)));
+      reminderToggle.textContent = enabled ? 'Disable Notifications' : 'Enable Notifications';
+      reminderToggle.classList.toggle('active', enabled);
+    }
+    syncUI();
+
+    slotBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const slot = btn.dataset.slot;
+        slots = slots.includes(slot) ? slots.filter(s => s !== slot) : [...slots, slot];
+        localStorage.setItem('reminder_slots', JSON.stringify(slots));
+        syncUI();
+        if (enabled) await scheduleReminders(slots);
+      });
+    });
+
+    reminderToggle.addEventListener('click', async () => {
+      if (!enabled) {
+        if (!slots.length) { showToast('Select at least one time slot first.', 'error'); return; }
+        const granted = await requestPermission();
+        if (!granted) { showToast('Notification permission denied.', 'error'); return; }
+        enabled = true;
+        localStorage.setItem('reminder_enabled', 'true');
+        await scheduleReminders(slots);
+        showToast('Reminders enabled.');
+      } else {
+        enabled = false;
+        localStorage.setItem('reminder_enabled', 'false');
+        await cancelReminders();
+        showToast('Reminders disabled.');
+      }
+      syncUI();
+    });
+
+    initReminders();
   }
 });
 
