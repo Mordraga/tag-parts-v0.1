@@ -38,6 +38,7 @@ body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 20px 20px 20px 8px;
+  padding-top: calc(20px + env(safe-area-inset-top));
   max-width: 860px;
 }
 
@@ -233,6 +234,48 @@ button.danger:hover {
   margin-top: 4px;
 }
 
+/* ========== Edit Modal ========== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.modal-box h3 {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+}
+
+.modal-box .part-edit-form,
+.modal-box .log-edit-form {
+  border: none;
+  padding: 0;
+  background: none;
+  margin-top: 0;
+}
+
+[data-theme='dark'] .modal-box .part-edit-form,
+[data-theme='dark'] .modal-box .log-edit-form {
+  background: none;
+}
+
 /* ========== Comment Threads ========== */
 .comment-thread {
   margin-top: 8px;
@@ -314,6 +357,8 @@ nav {
   -webkit-backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
+  padding-block: calc(env(safe-area-inset-top) + 16px) calc(env(safe-area-inset-bottom) + 16px);
   z-index: 100;
   transition: width 0.25s ease;
   overflow: hidden;
@@ -321,6 +366,7 @@ nav {
 
 .sidebar-open nav {
   width: 220px;
+  padding-left: 28px;
 }
 
 #nav-toggle {
@@ -354,17 +400,22 @@ nav a {
   align-items: center;
   color: var(--nav-link);
   text-decoration: none;
-  padding: 12px 0 12px 15px;
+  padding: 14px 0 14px 15px;
   gap: 10px;
   white-space: nowrap;
   overflow: hidden;
   transition: background 0.15s ease;
   border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   background: none;
   font-size: inherit;
   font-weight: normal;
   border-radius: 0;
   width: 100%;
+}
+
+nav a:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .nav-icon {
@@ -393,9 +444,7 @@ nav a:hover {
 
 nav a.active {
   background: var(--accent);
-  border-radius: 8px;
-  margin: 2px 6px;
-  padding: 12px 9px;
+  border-radius: 0;
 }
 
 #nav-overlay {
@@ -451,6 +500,197 @@ nav a.active {
 
 .mention {
   font-weight: 600;
+}
+
+/* ========== Mention Autocomplete ========== */
+.mention-autocomplete {
+  position: fixed;
+  z-index: 3000;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.mention-ac-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.mention-ac-item:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mention-ac-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ========== Reactions ========== */
+.reaction-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  cursor: pointer;
+  max-width: 160px;
+}
+
+.reaction-chip:hover {
+  border-color: var(--accent);
+}
+
+.reaction-emoji {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.reaction-names {
+  color: var(--timestamp);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+}
+
+.reaction-add-btn {
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  cursor: pointer;
+  color: var(--timestamp);
+}
+
+.reaction-add-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.quick-react-label {
+  font-size: 0.78rem;
+  color: var(--timestamp);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 6px;
+}
+
+.quick-react-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.quick-react-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.quick-react-chip:hover {
+  border-color: var(--accent);
+  background: var(--card-bg);
+}
+
+.qr-emoji {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.qr-name {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.quick-react-divider {
+  font-size: 0.78rem;
+  color: var(--timestamp);
+  text-align: center;
+  margin: 4px 0 8px;
+}
+
+.reaction-part-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.reaction-modal-inner label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.reaction-modal-inner select,
+.reaction-part-label select {
+  width: 100%;
+}
+
+.reaction-pre-note {
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  color: var(--timestamp);
+  line-height: 1.4;
+}
+
+.reaction-pre-emoji {
+  font-size: 1.1rem;
+}
+
+/* Make the emoji picker fill the modal width and match app theme */
+.reaction-picker {
+  width: 100%;
+  --border-radius: var(--radius);
+  --border-color: var(--border);
+  --background: var(--card-bg);
+  --input-border-color: var(--border);
+  --input-font-color: var(--text);
+  --input-placeholder-color: var(--timestamp);
+  --button-hover-background: var(--accent);
+  --category-emoji-size: 1.125rem;
 }
 
 .toast-tip {

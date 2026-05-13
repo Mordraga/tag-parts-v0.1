@@ -1,6 +1,7 @@
 
 import { saveToStorage, loadFromStorage } from './storage.js';
 import { refreshPartSuggestions, showToast } from './utils.js';
+import { openModal } from './modal.js';
 
 const STORAGE_KEY = 'parts_data';
 const INDEX_KEY = 'parts_index';
@@ -18,7 +19,7 @@ function saveParts(parts) {
 }
 
 function updatePartsIndex(parts) {
-  const index = parts.map(p => ({ name: p.name, color: p.color }));
+  const index = parts.map(p => ({ name: p.name, color: p.color, defaultEmoji: p.defaultEmoji || null }));
   saveToStorage(INDEX_KEY, index);
 }
 
@@ -93,7 +94,7 @@ function renderParts() {
 
     // Name
     const nameEl = document.createElement('strong');
-    nameEl.textContent = part.name;
+    nameEl.textContent = (part.defaultEmoji ? part.defaultEmoji + ' ' : '') + part.name;
     nameEl.style.color = textColor;
     div.appendChild(nameEl);
 
@@ -141,11 +142,7 @@ function renderParts() {
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
     editBtn.textContent = 'Edit';
-    editBtn.onclick = () => {
-      if (div.querySelector('.part-edit-form')) return;
-      const form = buildEditForm(part, index);
-      div.appendChild(form);
-    };
+    editBtn.onclick = () => openEditModal(part, index);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
@@ -250,6 +247,7 @@ function handleSubmit(e) {
   const colorPicker = document.getElementById('color').value;
   const hexInput = document.getElementById('hexColor').value.trim();
   const privatePart = document.getElementById('private').checked;
+  const defaultEmoji = document.getElementById('defaultEmoji').value.trim() || null;
 
   const color = /^#[0-9a-fA-F]{6}$/.test(hexInput) ? hexInput : colorPicker;
 
@@ -264,6 +262,7 @@ function handleSubmit(e) {
     ifsRole,
     alias,
     color,
+    defaultEmoji,
     private: privatePart,
     timestamp: new Date().toLocaleString()
   };
@@ -272,6 +271,7 @@ function handleSubmit(e) {
   renderParts();
   e.target.reset();
   document.getElementById('hexColor').value = '';
+  document.getElementById('defaultEmoji').value = '';
   updateColorPreview('');
 }
 
@@ -317,73 +317,78 @@ function getTextColorForBackground(hex) {
   return brightness > 128 ? '#000' : '#fff';
 }
 
-function buildEditForm(part, index) {
-  const form = document.createElement('div');
-  form.className = 'part-edit-form';
-  form.innerHTML = `
-    <label>Name
-      <input type="text" class="edit-name" value="${part.name || ''}" />
-    </label>
-    <label>Alias
-      <input type="text" class="edit-alias" value="${part.alias || ''}" />
-    </label>
-    <label>Role
-      <input type="text" class="edit-role" value="${part.role || ''}" />
-    </label>
-    <label>IFS Role
-      <input type="text" class="edit-ifs" value="${part.ifsRole || ''}" />
-    </label>
-    <label>Color
-      <div class="color-pair">
-        <input type="color" class="edit-color" value="${part.color || '#6699cc'}" />
-        <input type="text" class="edit-hex" value="${part.color || '#6699cc'}" />
+function openEditModal(part, index) {
+  openModal('Edit Part', (body, close) => {
+    body.innerHTML = `
+      <div class="part-edit-form">
+        <label>Name
+          <input type="text" class="edit-name" value="${part.name || ''}" />
+        </label>
+        <label>Alias
+          <input type="text" class="edit-alias" value="${part.alias || ''}" />
+        </label>
+        <label>Role
+          <input type="text" class="edit-role" value="${part.role || ''}" />
+        </label>
+        <label>IFS Role
+          <input type="text" class="edit-ifs" value="${part.ifsRole || ''}" />
+        </label>
+        <label>Default Reaction Emoji
+          <input type="text" class="edit-default-emoji" value="${part.defaultEmoji || ''}" placeholder="e.g. ❤️" />
+        </label>
+        <label>Color
+          <div class="color-pair">
+            <input type="color" class="edit-color" value="${part.color || '#6699cc'}" />
+            <input type="text" class="edit-hex" value="${part.color || '#6699cc'}" />
+          </div>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" class="edit-private" ${part.private ? 'checked' : ''} />
+          Private
+        </label>
+        <div class="edit-actions">
+          <button type="button" class="save-part-edit">Save</button>
+          <button type="button" class="cancel-part-edit">Cancel</button>
+        </div>
       </div>
-    </label>
-    <label class="checkbox-field">
-      <input type="checkbox" class="edit-private" ${part.private ? 'checked' : ''} />
-      Private
-    </label>
-    <div class="edit-actions">
-      <button type="button" class="save-part-edit">Save</button>
-      <button type="button" class="cancel-part-edit">Cancel</button>
-    </div>
-  `;
+    `;
 
-  const colorInput = form.querySelector('.edit-color');
-  const hexInput = form.querySelector('.edit-hex');
-  const syncColor = (value) => {
-    if (/^#[0-9a-fA-F]{6}$/.test(value)) {
-      colorInput.value = value;
-      hexInput.value = value;
-    }
-  };
-  colorInput.addEventListener('input', () => syncColor(colorInput.value));
-  hexInput.addEventListener('input', () => syncColor(hexInput.value));
-
-  form.querySelector('.cancel-part-edit').addEventListener('click', () => {
-    form.remove();
-  });
-
-  form.querySelector('.save-part-edit').addEventListener('click', () => {
-    const updates = {
-      name: form.querySelector('.edit-name').value.trim(),
-      alias: form.querySelector('.edit-alias').value.trim(),
-      role: form.querySelector('.edit-role').value.trim(),
-      ifsRole: form.querySelector('.edit-ifs').value.trim(),
-      color: hexInput.value.trim(),
-      private: form.querySelector('.edit-private').checked
+    const colorInput = body.querySelector('.edit-color');
+    const hexInput = body.querySelector('.edit-hex');
+    const syncColor = (value) => {
+      if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+        colorInput.value = value;
+        hexInput.value = value;
+      }
     };
-    if (!updates.name || !updates.role) {
-      showToast('Name and Role are required.', 'error');
-      return;
-    }
-    if (!/^#[0-9a-fA-F]{6}$/.test(updates.color)) {
-      updates.color = colorInput.value;
-    }
-    editPart(index, updates);
-  });
+    colorInput.addEventListener('input', () => syncColor(colorInput.value));
+    hexInput.addEventListener('input', () => syncColor(hexInput.value));
 
-  return form;
+    body.querySelector('.cancel-part-edit').addEventListener('click', close);
+
+    body.querySelector('.save-part-edit').addEventListener('click', () => {
+      const updates = {
+        name: body.querySelector('.edit-name').value.trim(),
+        alias: body.querySelector('.edit-alias').value.trim(),
+        role: body.querySelector('.edit-role').value.trim(),
+        ifsRole: body.querySelector('.edit-ifs').value.trim(),
+        defaultEmoji: body.querySelector('.edit-default-emoji').value.trim() || null,
+        color: hexInput.value.trim(),
+        private: body.querySelector('.edit-private').checked
+      };
+      if (!updates.name || !updates.role) {
+        showToast('Name and Role are required.', 'error');
+        return;
+      }
+      if (!/^#[0-9a-fA-F]{6}$/.test(updates.color)) {
+        updates.color = colorInput.value;
+      }
+      editPart(index, updates);
+      close();
+    });
+
+    body.querySelector('.edit-name').focus();
+  });
 }
 
 window.getPartsIndex = getPartsIndex;

@@ -1,5 +1,6 @@
 import { loadFromStorage, saveToStorage } from './storage.js';
 import { loadPartsIndex, findPartByName, attachPartSuggestions, showToast } from './utils.js';
+import { openModal } from './modal.js';
 
 const STORAGE_KEY = 'relationships_data';
 
@@ -187,11 +188,7 @@ function createRelCard(rel, partsIndex) {
   const editBtn = document.createElement('button');
   editBtn.type = 'button';
   editBtn.textContent = 'Edit';
-  editBtn.addEventListener('click', () => {
-    const existing = card.querySelector('.rel-edit-form');
-    if (existing) { existing.remove(); return; }
-    card.appendChild(buildRelEditForm(rel, partsIndex));
-  });
+  editBtn.addEventListener('click', () => openRelEditModal(rel, partsIndex));
 
   const deleteBtn = document.createElement('button');
   deleteBtn.type = 'button';
@@ -206,58 +203,61 @@ function createRelCard(rel, partsIndex) {
   return card;
 }
 
-function buildRelEditForm(rel, partsIndex) {
-  const form = document.createElement('div');
-  form.className = 'rel-edit-form';
-  form.innerHTML = `
-    <label>Part
-      <input type="text" class="edit-partA" value="${escapeHtml(rel.partA)}" autocomplete="off" />
-    </label>
-    <label>Relationship
-      <input type="text" class="edit-type" value="${escapeHtml(rel.type)}" autocomplete="off" />
-    </label>
-    <label>With
-      <input type="text" class="edit-partB" value="${escapeHtml(rel.partB)}" autocomplete="off" />
-    </label>
-    <label>Notes
-      <textarea class="edit-notes" rows="2">${escapeHtml(rel.notes || '')}</textarea>
-    </label>
-    <label class="checkbox-field">
-      <input type="checkbox" class="edit-internal" ${rel.internal ? 'checked' : ''} />
-      Internal (system only)
-    </label>
-    <div class="edit-actions">
-      <button type="button" class="save-rel-edit">Save</button>
-      <button type="button" class="cancel-rel-edit">Cancel</button>
-    </div>
-  `;
+function openRelEditModal(rel, partsIndex) {
+  openModal('Edit Relationship', (body, close) => {
+    body.innerHTML = `
+      <div class="part-edit-form">
+        <label>Part
+          <input type="text" class="edit-partA" value="${escapeHtml(rel.partA)}" autocomplete="off" />
+        </label>
+        <label>Relationship
+          <input type="text" class="edit-type" value="${escapeHtml(rel.type)}" autocomplete="off" />
+        </label>
+        <label>With
+          <input type="text" class="edit-partB" value="${escapeHtml(rel.partB)}" autocomplete="off" />
+        </label>
+        <label>Notes
+          <textarea class="edit-notes" rows="2">${escapeHtml(rel.notes || '')}</textarea>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" class="edit-internal" ${rel.internal ? 'checked' : ''} />
+          Internal (system only)
+        </label>
+        <div class="edit-actions">
+          <button type="button" class="save-rel-edit">Save</button>
+          <button type="button" class="cancel-rel-edit">Cancel</button>
+        </div>
+      </div>
+    `;
 
-  attachPartSuggestions(form.querySelector('.edit-partA'));
-  attachPartSuggestions(form.querySelector('.edit-partB'));
+    attachPartSuggestions(body.querySelector('.edit-partA'));
+    attachPartSuggestions(body.querySelector('.edit-partB'));
 
-  form.querySelector('.cancel-rel-edit').addEventListener('click', () => form.remove());
+    body.querySelector('.cancel-rel-edit').addEventListener('click', close);
 
-  form.querySelector('.save-rel-edit').addEventListener('click', () => {
-    const newPartA = form.querySelector('.edit-partA').value.trim();
-    const newPartB = form.querySelector('.edit-partB').value.trim();
-    const newType = form.querySelector('.edit-type').value.trim();
-    const newNotes = form.querySelector('.edit-notes').value.trim();
-    const newInternal = form.querySelector('.edit-internal').checked;
+    body.querySelector('.save-rel-edit').addEventListener('click', () => {
+      const newPartA = body.querySelector('.edit-partA').value.trim();
+      const newPartB = body.querySelector('.edit-partB').value.trim();
+      const newType = body.querySelector('.edit-type').value.trim();
+      const newNotes = body.querySelector('.edit-notes').value.trim();
+      const newInternal = body.querySelector('.edit-internal').checked;
 
-    if (!newPartA || !newPartB || !newType) return;
-    if (!findPartByName(newPartA, partsIndex)) {
-      showToast(`"${newPartA}" not found in parts directory.`, 'error');
-      return;
-    }
+      if (!newPartA || !newPartB || !newType) return;
+      if (!findPartByName(newPartA, partsIndex)) {
+        showToast(`"${newPartA}" not found in parts directory.`, 'error');
+        return;
+      }
 
-    updateRelationship(rel.id, {
-      partA: newPartA, partB: newPartB,
-      type: newType, notes: newNotes, internal: newInternal
+      updateRelationship(rel.id, {
+        partA: newPartA, partB: newPartB,
+        type: newType, notes: newNotes, internal: newInternal
+      });
+      renderRelationships();
+      close();
     });
-    renderRelationships();
-  });
 
-  return form;
+    body.querySelector('.edit-partA').focus();
+  });
 }
 
 function renderRelationships() {

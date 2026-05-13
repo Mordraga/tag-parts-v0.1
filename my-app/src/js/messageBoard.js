@@ -2,11 +2,14 @@
 // scripts/modules/messageBoard.js
 import { saveToStorage, loadFromStorage } from './storage.js';
 import { renderCommentSection } from './comment.js';
+import { openModal } from './modal.js';
+import { renderReactionBar } from './reactions.js';
 import {
   formatMentions,
   loadPartsIndex,
   findPartByName,
   attachPartSuggestions,
+  attachMentionAutocomplete,
   showToast
 } from './utils.js';
 
@@ -90,36 +93,38 @@ function editThread(id, updates) {
   renderBoard();
 }
 
-function buildThreadEditForm(thread) {
-  const form = document.createElement('div');
-  form.className = 'log-edit-form';
-  form.innerHTML = `
-    <input type="text" class="edit-thread-part" placeholder="Part" value="${thread.part}" />
-    <textarea class="edit-thread-subject" placeholder="Subject">${thread.subject}</textarea>
-    <div class="edit-actions">
-      <button type="button" class="save-thread-edit">Save</button>
-      <button type="button" class="cancel-thread-edit">Cancel</button>
-    </div>
-  `;
+function openThreadEditModal(thread) {
+  openModal('Edit Thread', (body, close) => {
+    body.innerHTML = `
+      <div class="log-edit-form">
+        <input type="text" class="edit-thread-part" placeholder="Part" value="${thread.part}" />
+        <textarea class="edit-thread-subject" placeholder="Subject">${thread.subject}</textarea>
+        <div class="edit-actions">
+          <button type="button" class="save-thread-edit">Save</button>
+          <button type="button" class="cancel-thread-edit">Cancel</button>
+        </div>
+      </div>
+    `;
 
-  const partInput = form.querySelector('.edit-thread-part');
-  attachPartSuggestions(partInput);
+    const partInput = body.querySelector('.edit-thread-part');
+    attachPartSuggestions(partInput);
+    attachMentionAutocomplete(body.querySelector('.edit-thread-subject'));
 
-  form.querySelector('.cancel-thread-edit').addEventListener('click', () => {
-    form.remove();
+    body.querySelector('.cancel-thread-edit').addEventListener('click', close);
+
+    body.querySelector('.save-thread-edit').addEventListener('click', () => {
+      const part = partInput.value.trim();
+      const subject = body.querySelector('.edit-thread-subject').value.trim();
+      if (!subject) {
+        showToast('Subject is required.', 'error');
+        return;
+      }
+      editThread(thread.id, { part: part || 'Unknown', subject });
+      close();
+    });
+
+    partInput.focus();
   });
-
-  form.querySelector('.save-thread-edit').addEventListener('click', () => {
-    const part = partInput.value.trim();
-    const subject = form.querySelector('.edit-thread-subject').value.trim();
-    if (!subject) {
-      alert('Subject is required.');
-      return;
-    }
-    editThread(thread.id, { part: part || 'Unknown', subject });
-  });
-
-  return form;
 }
 
 export function renderBoard() {
@@ -153,9 +158,7 @@ export function renderBoard() {
     editBtn.textContent = 'Edit';
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (div.querySelector('.log-edit-form')) return;
-      const form = buildThreadEditForm(thread);
-      div.appendChild(form);
+      openThreadEditModal(thread);
     });
 
     const deleteBtn = document.createElement('button');
@@ -180,6 +183,7 @@ export function renderBoard() {
     div.appendChild(content);
     div.appendChild(actions);
     div.appendChild(commentWrapper);
+    renderReactionBar(div, 'thread', thread.id);
     container.appendChild(div);
   });
 }
@@ -189,6 +193,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const partInput = document.getElementById('input-part');
   attachPartSuggestions(partInput);
+  attachMentionAutocomplete(document.getElementById('input-subject'));
   const partSelect = document.getElementById('input-part-select');
   populateThreadPartSelect();
   partSelect?.addEventListener('change', () => {

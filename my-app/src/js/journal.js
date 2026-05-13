@@ -1,5 +1,6 @@
 import { loadFromStorage, saveToStorage } from './storage.js';
-import { loadPartsIndex, findPartByName, showToast } from './utils.js';
+import { loadPartsIndex, findPartByName, showToast, attachMentionAutocomplete } from './utils.js';
+import { openModal } from './modal.js';
 
 let unlocked = false;
 let currentPart = null;
@@ -86,7 +87,7 @@ function renderEntries(partName) {
     `;
 
     card.querySelector('.edit-entry-btn').addEventListener('click', () => {
-      openEditForm(card, partName, entry);
+      openJournalEditModal(partName, entry);
     });
 
     card.querySelector('.delete-entry-btn').addEventListener('click', () => {
@@ -101,30 +102,32 @@ function renderEntries(partName) {
   });
 }
 
-function openEditForm(card, partName, entry) {
-  const existing = card.querySelector('.journal-edit-form');
-  if (existing) { existing.remove(); return; }
+function openJournalEditModal(partName, entry) {
+  openModal('Edit Entry', (body, close) => {
+    body.innerHTML = `
+      <div class="log-edit-form">
+        <textarea rows="6" style="width:100%;box-sizing:border-box">${escapeHtml(entry.text)}</textarea>
+        <div class="edit-actions">
+          <button class="save-edit-btn">Save</button>
+          <button class="cancel-edit-btn ghost-btn">Cancel</button>
+        </div>
+      </div>
+    `;
 
-  const form = document.createElement('div');
-  form.className = 'journal-edit-form log-edit-form';
-  form.innerHTML = `
-    <textarea rows="5" style="width:100%;box-sizing:border-box">${escapeHtml(entry.text)}</textarea>
-    <div style="display:flex;gap:8px">
-      <button class="save-edit-btn">Save</button>
-      <button class="cancel-edit-btn ghost-btn">Cancel</button>
-    </div>
-  `;
+    body.querySelector('.cancel-edit-btn').addEventListener('click', close);
 
-  form.querySelector('.save-edit-btn').addEventListener('click', () => {
-    const newText = form.querySelector('textarea').value;
-    if (!newText.trim()) return;
-    updateEntry(partName, entry.id, newText);
-    renderEntries(partName);
+    body.querySelector('.save-edit-btn').addEventListener('click', () => {
+      const newText = body.querySelector('textarea').value;
+      if (!newText.trim()) return;
+      updateEntry(partName, entry.id, newText);
+      renderEntries(partName);
+      close();
+    });
+
+    const ta = body.querySelector('textarea');
+    attachMentionAutocomplete(ta);
+    ta.focus();
   });
-
-  form.querySelector('.cancel-edit-btn').addEventListener('click', () => form.remove());
-  card.appendChild(form);
-  form.querySelector('textarea').focus();
 }
 
 // ── Journal View ──────────────────────────────────────────────
@@ -148,6 +151,7 @@ function renderJournal(part) {
     <button id="saveEntryBtn">Save Entry</button>
   `;
   root.appendChild(compose);
+  attachMentionAutocomplete(compose.querySelector('#newEntryText'));
 
   compose.querySelector('#saveEntryBtn').addEventListener('click', () => {
     const ta = compose.querySelector('#newEntryText');

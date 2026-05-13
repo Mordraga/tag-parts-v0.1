@@ -1,6 +1,6 @@
 // index.js
 import { addLogEntry, renderLogs } from './log.js';
-import { attachPartSuggestions, showToast } from './utils.js';
+import { attachPartSuggestions, attachMentionAutocomplete, showToast } from './utils.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   console.log("[index.js] loaded");
@@ -17,6 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   attachPartSuggestions(document.querySelector('.who-input'));
+  attachMentionAutocomplete(document.getElementById('msg'));
   document.getElementById('add-cofronter').addEventListener('click', addCoFronterField);
 
   // Load logs on page load

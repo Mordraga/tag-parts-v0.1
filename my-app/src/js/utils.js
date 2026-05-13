@@ -70,6 +70,84 @@ export function attachPartSuggestions(inputEl) {
   inputEl.setAttribute('list', PART_SUGGESTION_ID);
 }
 
+// @mention autocomplete for message textareas and text inputs
+export function attachMentionAutocomplete(el) {
+  if (!el) return;
+
+  let menu = null;
+
+  function getContext() {
+    const pos = el.selectionStart;
+    const before = el.value.slice(0, pos);
+    // Match the last @ up to the cursor — allow spaces so multi-word names work
+    const m = before.match(/@([^@\n]*)$/);
+    if (!m) return null;
+    const query = m[1];
+    // Don't trigger if nothing typed after @ yet (show all parts) or if only spaces
+    return { query: query.toLowerCase(), atPos: pos - m[0].length, end: pos };
+  }
+
+  function removeMenu() {
+    menu?.remove();
+    menu = null;
+  }
+
+  function pick(partName, ctx) {
+    const val = el.value;
+    const insert = '@' + partName;
+    el.value = val.slice(0, ctx.atPos) + insert + val.slice(ctx.end);
+    const newPos = ctx.atPos + insert.length;
+    el.setSelectionRange(newPos, newPos);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    removeMenu();
+    el.focus();
+  }
+
+  function showMenu(parts, ctx) {
+    removeMenu();
+    if (!parts.length) return;
+
+    menu = document.createElement('div');
+    menu.className = 'mention-autocomplete';
+
+    parts.slice(0, 8).forEach((part) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mention-ac-item';
+      const dot = document.createElement('span');
+      dot.className = 'mention-ac-dot';
+      dot.style.background = part.color || '#6699cc';
+      btn.appendChild(dot);
+      btn.appendChild(document.createTextNode(part.name));
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        pick(part.name, ctx);
+      });
+      menu.appendChild(btn);
+    });
+
+    const rect = el.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.left = `${rect.left}px`;
+    menu.style.top = `${rect.bottom + 4}px`;
+    menu.style.minWidth = `${Math.min(rect.width, 220)}px`;
+    document.body.appendChild(menu);
+  }
+
+  el.addEventListener('input', () => {
+    const ctx = getContext();
+    if (!ctx) { removeMenu(); return; }
+    const all = loadPartsIndex().filter(p => p.name !== '???');
+    const q = ctx.query;
+    const matches = all.filter(p => p.name.toLowerCase().startsWith(q));
+    if (matches.length) showMenu(matches, ctx);
+    else removeMenu();
+  });
+
+  el.addEventListener('blur', () => setTimeout(removeMenu, 150));
+  window.addEventListener('scroll', removeMenu, { passive: true, capture: true });
+}
+
 export function refreshPartSuggestions() {
   const list = document.getElementById(PART_SUGGESTION_ID);
   if (list) {
@@ -163,8 +241,27 @@ function createFallbackSuggestions(inputEl) {
 }
 
 // Mention parsing/highlighting
-const mentionRegex = /@([A-Za-z0-9_'`-]+)/g;
-const PLACEHOLDER_PREFIX = '__MENTION__';
+// Placeholder uses «»  which are not markdown special characters and won't be
+// processed as bold/italic/code by marked, so the replacement survives sanitization.
+const PLACEHOLDER_PREFIX = '«MENTION';
+const PLACEHOLDER_SUFFIX = '»';
+
+function buildMentionRegex(partsIndex) {
+  // Sort longest first so multi-word names match before shorter prefixes.
+  // Escape regex special chars in part names, then fall back to the generic
+  // word-char class for @mentions of unknown names.
+  const escapedNames = partsIndex
+    .map(p => p.name.trim())
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length)
+    .map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+  const alternatives = escapedNames.length
+    ? [...escapedNames, "[A-Za-z0-9_'`\\-]+"]
+    : ["[A-Za-z0-9_'`\\-]+"];
+
+  return new RegExp(`@(${alternatives.join('|')})`, 'gi');
+}
 
 export function formatMentions(text = '', partsIndex = loadPartsIndex()) {
   if (!text) return { html: '', mentions: [] };
@@ -173,20 +270,14 @@ export function formatMentions(text = '', partsIndex = loadPartsIndex()) {
     partsIndex.map((p) => [p.name.trim().toLowerCase(), p])
   );
 
+  const mentionRegex = buildMentionRegex(partsIndex);
   let placeholderIndex = 0;
   const textWithPlaceholders = text.replace(mentionRegex, (match, name) => {
     const key = name.trim().toLowerCase();
     const part = map[key];
-    if (!part) {
-      return match;
-    }
-    const placeholder = `${PLACEHOLDER_PREFIX}${placeholderIndex++}__`;
-    mentionEntries.push({
-      placeholder,
-      raw: match,
-      name: part.name,
-      color: part.color
-    });
+    if (!part) return match;
+    const placeholder = `${PLACEHOLDER_PREFIX}${placeholderIndex++}${PLACEHOLDER_SUFFIX}`;
+    mentionEntries.push({ placeholder, raw: match, name: part.name, color: part.color });
     return placeholder;
   });
 
@@ -195,9 +286,7 @@ export function formatMentions(text = '', partsIndex = loadPartsIndex()) {
 
   mentionEntries.forEach((mention) => {
     const color = mention.color || '#6699cc';
-    const replacement = `<span class="mention" style="color:${color}">${escapeHtml(
-      mention.raw
-    )}</span>`;
+    const replacement = `<span class="mention" style="color:${color}">${escapeHtml(mention.raw)}</span>`;
     html = html.split(mention.placeholder).join(replacement);
   });
 

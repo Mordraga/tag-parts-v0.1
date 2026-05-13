@@ -2,11 +2,14 @@
 // scripts/modules/log.js
 import { saveToStorage, loadFromStorage } from './storage.js';
 import { renderCommentSection } from './comment.js';
+import { openModal } from './modal.js';
+import { renderReactionBar } from './reactions.js';
 import {
   formatMentions,
   findPartByName,
   loadPartsIndex,
   attachPartSuggestions,
+  attachMentionAutocomplete,
   showToast
 } from './utils.js';
 
@@ -293,85 +296,78 @@ export function editLogEntry(id, changes, containerId, type, refreshCallback) {
   }
 }
 
-function buildEditForm(log, containerId, type, refreshCallback) {
-  const form = document.createElement('div');
-  form.className = 'log-edit-form';
-  form.innerHTML = `
-    <div class="edit-who-container"></div>
-    <button type="button" class="edit-add-cofronter">+ co-fronter</button>
-    <input type="text" class="edit-where" placeholder="Where" value="${log.where}" />
-    <input type="text" class="edit-when" placeholder="When" value="${log.when}" />
-    <textarea class="edit-msg" placeholder="Message">${log.msg || ''}</textarea>
-    <label>Awareness
-      <input type="number" class="edit-awareness" min="1" max="10" value="${log.awareness || 5}" />
-    </label>
-    <div class="edit-actions">
-      <button type="button" class="save-edit">Save</button>
-      <button type="button" class="cancel-edit">Cancel</button>
-    </div>
-  `;
+function openLogEditModal(log, containerId, type, refreshCallback) {
+  openModal('Edit Log', (body, close) => {
+    body.innerHTML = `
+      <div class="log-edit-form">
+        <div class="edit-who-container"></div>
+        <button type="button" class="edit-add-cofronter">+ co-fronter</button>
+        <input type="text" class="edit-where" placeholder="Where" value="${log.where}" />
+        <input type="text" class="edit-when" placeholder="When" value="${log.when}" />
+        <textarea class="edit-msg" placeholder="Message">${log.msg || ''}</textarea>
+        <label>Awareness
+          <input type="number" class="edit-awareness" min="1" max="10" value="${log.awareness || 5}" />
+        </label>
+        <div class="edit-actions">
+          <button type="button" class="save-edit">Save</button>
+          <button type="button" class="cancel-edit">Cancel</button>
+        </div>
+      </div>
+    `;
 
-  const whoContainer = form.querySelector('.edit-who-container');
-  const whoValues = Array.isArray(log.who) ? log.who : [log.who || ''];
+    const whoContainer = body.querySelector('.edit-who-container');
+    const whoValues = Array.isArray(log.who) ? log.who : [log.who || ''];
 
-  function addEditWhoRow(value, isPrimary) {
-    const row = document.createElement('div');
-    row.className = 'who-field';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'edit-who-input';
-    input.placeholder = isPrimary ? 'Who (required)' : 'Co-fronter';
-    input.value = value;
-    row.appendChild(input);
-    if (!isPrimary) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'who-remove-btn';
-      btn.textContent = '−';
-      btn.addEventListener('click', () => row.remove());
-      row.appendChild(btn);
-    }
-    whoContainer.appendChild(row);
-    attachPartSuggestions(input);
-  }
-
-  whoValues.forEach((v, i) => addEditWhoRow(v, i === 0));
-
-  form.querySelector('.edit-add-cofronter').addEventListener('click', () => {
-    addEditWhoRow('', false);
-  });
-
-  const saveBtn = form.querySelector('.save-edit');
-  const cancelBtn = form.querySelector('.cancel-edit');
-
-  cancelBtn.addEventListener('click', () => {
-    form.remove();
-  });
-
-  saveBtn.addEventListener('click', () => {
-    const editWhoValues = [...form.querySelectorAll('.edit-who-input')]
-      .map(el => el.value.trim()).filter(Boolean);
-    const who = editWhoValues.length > 1 ? editWhoValues : editWhoValues[0] ?? '';
-    const where = form.querySelector('.edit-where').value.trim();
-    const when = form.querySelector('.edit-when').value.trim();
-    const msg = form.querySelector('.edit-msg').value.trim();
-    const awareness = parseInt(form.querySelector('.edit-awareness').value, 10) || 5;
-
-    if (!editWhoValues.length || !where || !when) {
-      showToast('Who, Where, and When are required.', 'error');
-      return;
+    function addEditWhoRow(value, isPrimary) {
+      const row = document.createElement('div');
+      row.className = 'who-field';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'edit-who-input';
+      input.placeholder = isPrimary ? 'Who (required)' : 'Co-fronter';
+      input.value = value;
+      row.appendChild(input);
+      if (!isPrimary) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'who-remove-btn';
+        btn.textContent = '−';
+        btn.addEventListener('click', () => row.remove());
+        row.appendChild(btn);
+      }
+      whoContainer.appendChild(row);
+      attachPartSuggestions(input);
     }
 
-    editLogEntry(
-      log.id,
-      { who, where, when, msg, awareness },
-      containerId,
-      type,
-      refreshCallback
-    );
-  });
+    whoValues.forEach((v, i) => addEditWhoRow(v, i === 0));
 
-  return form;
+    body.querySelector('.edit-add-cofronter').addEventListener('click', () => {
+      addEditWhoRow('', false);
+    });
+
+    body.querySelector('.cancel-edit').addEventListener('click', close);
+
+    body.querySelector('.save-edit').addEventListener('click', () => {
+      const editWhoValues = [...body.querySelectorAll('.edit-who-input')]
+        .map(el => el.value.trim()).filter(Boolean);
+      const who = editWhoValues.length > 1 ? editWhoValues : editWhoValues[0] ?? '';
+      const where = body.querySelector('.edit-where').value.trim();
+      const when = body.querySelector('.edit-when').value.trim();
+      const msg = body.querySelector('.edit-msg').value.trim();
+      const awareness = parseInt(body.querySelector('.edit-awareness').value, 10) || 5;
+
+      if (!editWhoValues.length || !where || !when) {
+        showToast('Who, Where, and When are required.', 'error');
+        return;
+      }
+
+      editLogEntry(log.id, { who, where, when, msg, awareness }, containerId, type, refreshCallback);
+      close();
+    });
+
+    attachMentionAutocomplete(body.querySelector('.edit-msg'));
+    body.querySelector('.edit-where').focus();
+  });
 }
 
 export function renderLogs(containerId = 'logDisplay', type = GENERAL_LOG) {
@@ -429,15 +425,8 @@ function createLogEntryElement(log, partsIndex, options = {}) {
   editBtn.textContent = 'Edit';
   editBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (div.querySelector('.log-edit-form')) return;
     if (!ensureEditAccess()) return;
-    const editForm = buildEditForm(
-      log,
-      options.containerId,
-      targetType,
-      refresh
-    );
-    div.appendChild(editForm);
+    openLogEditModal(log, options.containerId, targetType, refresh);
   });
 
   const archiveBtn = document.createElement('button');
@@ -472,6 +461,7 @@ function createLogEntryElement(log, partsIndex, options = {}) {
   div.appendChild(logContent);
   div.appendChild(actions);
   div.appendChild(commentWrapper);
+  renderReactionBar(div, 'log', log.id);
   return div;
 }
 
