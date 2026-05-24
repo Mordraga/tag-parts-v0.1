@@ -1617,3 +1617,232 @@ a.btn-link:hover {
   background: var(--accent);
   color: #fff;
 }
+
+/* ── Quick Log ──────────────────────────────────────────────────────────────── */
+
+.quick-log-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 26px;
+  border: none;
+  cursor: pointer;
+  z-index: 600;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: none;
+}
+.quick-log-fab:active {
+  transform: scale(0.9);
+}
+
+/* Recording overlay */
+.ql-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 700;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  padding: 24px;
+}
+.ql-overlay.active {
+  display: flex;
+}
+.ql-mic-icon {
+  font-size: 72px;
+  animation: ql-pulse 1.2s ease-in-out infinite;
+  line-height: 1;
+}
+.ql-transcript {
+  margin-top: 24px;
+  font-size: 1.15rem;
+  max-width: 80%;
+  min-height: 2em;
+  opacity: 0.92;
+  line-height: 1.4;
+}
+.ql-cancel-hint {
+  position: absolute;
+  bottom: 40px;
+  font-size: 0.8rem;
+  opacity: 0.45;
+}
+@keyframes ql-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4)); transform: scale(1); }
+  50%       { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.85)); transform: scale(1.08); }
+}
+
+/* Preset sheet (Mode B) */
+.ql-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 601;
+  display: none;
+}
+.ql-sheet-overlay.open {
+  display: block;
+}
+.ql-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card-bg, #fff);
+  border-radius: 16px 16px 0 0;
+  padding: 18px 16px 36px;
+  z-index: 602;
+  display: none;
+  max-height: 78vh;
+  overflow-y: auto;
+}
+.ql-sheet.open {
+  display: block;
+}
+.ql-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  font-size: 1rem;
+}
+.ql-close-btn {
+  font-size: 1rem;
+  padding: 2px 8px;
+}
+.ql-who-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.ql-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 4px;
+  display: block;
+}
+.ql-who-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 2px solid var(--accent);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  -webkit-tap-highlight-color: transparent;
+}
+.ql-part-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.ql-awareness {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin: 6px 0 2px;
+}
+
+/* Preset chips (shared between sheet and parts page) */
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+.preset-chip {
+  padding: 7px 15px;
+  border-radius: 20px;
+  border: 2px solid var(--accent);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.88rem;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.preset-chip.selected {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Quick preset management on parts cards */
+.part-presets {
+  margin-top: 10px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  padding-top: 8px;
+}
+.part-presets-label {
+  font-size: 0.8rem;
+  opacity: 0.65;
+  margin-bottom: 6px;
+}
+.preset-chip-removable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 16px;
+  border: 1.5px solid var(--accent);
+  background: transparent;
+  font-size: 0.82rem;
+  margin: 2px;
+}
+.preset-chip-removable .remove-preset {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0 2px;
+  opacity: 0.6;
+  color: inherit;
+}
+.preset-chip-removable .remove-preset:hover {
+  opacity: 1;
+}
+.add-preset-form {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  align-items: center;
+}
+.add-preset-form input[type="text"] {
+  flex: 1;
+  min-width: 120px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+}
+.add-preset-form input[type="number"] {
+  width: 52px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+}
+.add-preset-toggle {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  margin-top: 6px;
+}

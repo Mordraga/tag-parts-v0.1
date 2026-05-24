@@ -405,7 +405,7 @@ function createLogEntryElement(log, partsIndex, options = {}) {
       <p><strong>Who:</strong> ${formatWho(log.who)}</p>
       <p><strong>Where:</strong> ${log.where}</p>
       <p><strong>When:</strong> ${log.when}</p>
-      <p><strong>Awareness:</strong> ${log.awareness}</p>
+      <p><strong>Awareness:</strong> ${log.awareness ?? 'N/A'}</p>
       ${log.msg ? `<p><strong>Message:</strong> ${mentionData.html}</p>` : ''}
       <p class="timestamp">${timestampLabel}</p>
     `;

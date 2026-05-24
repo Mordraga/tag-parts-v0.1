@@ -173,8 +173,104 @@ function renderParts() {
     actions.appendChild(setCodeBtn);
     div.appendChild(actions);
 
+    div.appendChild(buildPresetsSection(part, index));
+
     container.appendChild(div);
   });
+}
+
+function buildPresetsSection(part, index) {
+  const section = document.createElement('div');
+  section.className = 'part-presets';
+
+  const label = document.createElement('div');
+  label.className = 'part-presets-label';
+  label.textContent = '⚡ Quick Log Presets';
+  section.appendChild(label);
+
+  const chipsContainer = document.createElement('div');
+  chipsContainer.className = 'preset-chips';
+  section.appendChild(chipsContainer);
+
+  const existingPresets = Array.isArray(part.quickPresets) ? part.quickPresets : [];
+
+  function renderChips() {
+    chipsContainer.innerHTML = '';
+    const parts = getParts();
+    const currentPresets = Array.isArray(parts[index]?.quickPresets) ? parts[index].quickPresets : [];
+    currentPresets.forEach((preset) => {
+      const chip = document.createElement('span');
+      chip.className = 'preset-chip-removable';
+      chip.innerHTML = `${preset.label} <em style="opacity:0.6">(${preset.awareness})</em>`;
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-preset';
+      removeBtn.setAttribute('aria-label', 'Remove preset');
+      removeBtn.textContent = '✕';
+      removeBtn.onclick = () => {
+        const p = getParts();
+        const updated = (p[index].quickPresets || []).filter((pr) => pr.id !== preset.id);
+        editPart(index, { quickPresets: updated });
+        renderChips();
+      };
+      chip.appendChild(removeBtn);
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  renderChips();
+
+  // Toggle add form
+  const addToggle = document.createElement('button');
+  addToggle.type = 'button';
+  addToggle.className = 'ghost add-preset-toggle';
+  addToggle.textContent = '＋ Add Preset';
+
+  const addForm = document.createElement('div');
+  addForm.className = 'add-preset-form';
+  addForm.style.display = 'none';
+
+  const labelInput = document.createElement('input');
+  labelInput.type = 'text';
+  labelInput.placeholder = 'Preset label…';
+
+  const awarenessInput = document.createElement('input');
+  awarenessInput.type = 'number';
+  awarenessInput.min = '1';
+  awarenessInput.max = '10';
+  awarenessInput.value = '5';
+  awarenessInput.title = 'Awareness (1–10)';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.textContent = 'Save';
+  saveBtn.onclick = () => {
+    const lbl = labelInput.value.trim();
+    if (!lbl) return;
+    const awareness = Math.min(10, Math.max(1, parseInt(awarenessInput.value, 10) || 5));
+    const p = getParts();
+    const currentPresets = Array.isArray(p[index]?.quickPresets) ? p[index].quickPresets : [];
+    const newPreset = { id: Date.now().toString(), label: lbl, awareness };
+    editPart(index, { quickPresets: [...currentPresets, newPreset] });
+    labelInput.value = '';
+    awarenessInput.value = '5';
+    addForm.style.display = 'none';
+    addToggle.textContent = '＋ Add Preset';
+    renderChips();
+  };
+
+  addForm.appendChild(labelInput);
+  addForm.appendChild(awarenessInput);
+  addForm.appendChild(saveBtn);
+
+  addToggle.onclick = () => {
+    const open = addForm.style.display !== 'none';
+    addForm.style.display = open ? 'none' : 'flex';
+    addToggle.textContent = open ? '＋ Add Preset' : '− Cancel';
+  };
+
+  section.appendChild(addToggle);
+  section.appendChild(addForm);
+  return section;
 }
 
 function saveJournalCode(partName, code) {
