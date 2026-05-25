@@ -26,7 +26,7 @@ export async function scheduleReminders(slots) {
   if (!slots.length) return;
   const notifications = slots.map((slot, i) => ({
     id: BASE_ID + i,
-    title: 'Tag Parts',
+    title: 'Inner Parts',
     body: "Time to check in — who's fronting?",
     schedule: { on: { hour: SLOT_HOURS[slot], minute: 0 }, repeats: true, allowWhileIdle: true },
     smallIcon: 'ic_stat_icon_config_sample',

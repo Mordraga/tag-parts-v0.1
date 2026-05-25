@@ -1,6 +1,6 @@
 {
-  "appId": "com.tagparts.www",
-  "appName": "Tag Parts",
+  "appId": "com.innerparts.app",
+  "appName": "Inner Parts",
   "webDir": "dist",
   "plugins": {
     "SplashScreen": {

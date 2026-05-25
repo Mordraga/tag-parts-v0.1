@@ -24,7 +24,7 @@ function buildOverlay() {
     <div class="ob-box">
       <div class="ob-step" id="ob-step-1">
         <div class="ob-hero">🌟</div>
-        <h2>Welcome to Tag Parts</h2>
+        <h2>Welcome to Inner Parts</h2>
         <p class="ob-subtitle">A private space for your system to track fronting, manage parts, and understand patterns over time.</p>
         <div class="ob-features">
           <div class="ob-feature-chip">🧩 Parts directory</div>
@@ -68,7 +68,7 @@ function buildOverlay() {
       <div class="ob-step ob-hidden" id="ob-step-3">
         <div class="ob-hero">🔐</div>
         <h2>Set Up Permissions</h2>
-        <p class="ob-subtitle">Tag Parts works best with a few permissions. You can change these any time in device Settings.</p>
+        <p class="ob-subtitle">Inner Parts works best with a few permissions. You can change these any time in device Settings.</p>
         <div class="ob-tips">
           <p>🎙 <strong>Microphone</strong> — for voice logging</p>
           <p>📍 <strong>Location</strong> — to auto-fill where you are</p>
@@ -87,7 +87,7 @@ function buildOverlay() {
           <p>📓 Each part can have their own password-protected journal.</p>
           <p>⚡ Tap the Quick Log button (top right) for fast entries.</p>
         </div>
-        <button class="ob-btn" id="ob-finish">Start Using Tag Parts</button>
+        <button class="ob-btn" id="ob-finish">Start Using Inner Parts</button>
       </div>
 
       <div class="ob-dots">
