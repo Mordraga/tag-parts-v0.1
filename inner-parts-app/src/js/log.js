@@ -418,6 +418,14 @@ function createLogEntryElement(log, partsIndex, options = {}) {
       ${log.msg ? `<p><strong>Message:</strong> ${mentionData.html}</p>` : ''}
       <p class="timestamp">${timestampLabel}</p>
     `;
+  if (log.audioPath) {
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.style.width = '100%';
+    audio.style.marginTop = '8px';
+    audio.src = window.Capacitor?.convertFileSrc(log.audioPath) ?? log.audioPath;
+    logContent.appendChild(audio);
+  }
 
   const actions = document.createElement('div');
   actions.className = 'log-actions';

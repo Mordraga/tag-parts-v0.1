@@ -1,9 +1,7 @@
-// quickLog.js — floating Quick Log button with one-tap voice logging and preset sheet
-
 import { addLogEntry, renderLogs } from './log.js';
 import { loadFromStorage } from './storage.js';
 import { showToast, loadPartsIndex } from './utils.js';
-import { startVoice, stopVoice } from './voice.js';
+import { startRecording, saveAudio } from './voice.js';
 import { getLocation } from './gps.js';
 
 const SYSTEM_PRESETS = [
@@ -29,65 +27,55 @@ function getPresetsForPart(partName) {
 
 // ── DOM references (populated in initQuickLog) ──────────────────────────────
 let fab, overlay, overlayText, sheet, sheetOverlay;
-let activeRecognizer = null;
+let activeRecorder = null;
 let locationPromise = null;
-let finalTranscript = '';
 
-// ── Voice path (Mode A) ─────────────────────────────────────────────────────
+// ── Voice path ───────────────────────────────────────────────────────────────
 
 async function startRecordingFlow() {
-  finalTranscript = '';
   locationPromise = getLocation();
   showOverlay();
-
-  activeRecognizer = await startVoice(
-    (interim) => {
-      overlayText.textContent = interim || '…';
-    },
-    async (final) => {
-      activeRecognizer = null;
-      if (!final && !finalTranscript) {
-        hideOverlay();
-        return;
-      }
-      const transcript = final || finalTranscript;
-      const where = await locationPromise;
-      const who = getLastFronter();
-
-      addLogEntry({
-        who,
-        where,
-        when: new Date().toLocaleString(),
-        msg: transcript,
-        timestamp: new Date().toISOString(),
-      });
-
-      hideOverlay();
-      showToast('Logged!');
-
-      // Refresh the recent logs list if it's on this page
-      if (document.getElementById('logDisplay')) {
-        renderLogs('logDisplay', 'recent_logs');
-      }
-    },
-    () => {
-      activeRecognizer = null;
-      hideOverlay();
-      showToast('Microphone unavailable.', 'error');
-    }
-  );
+  try {
+    activeRecorder = await startRecording();
+  } catch {
+    hideOverlay();
+    showToast('Microphone unavailable.', 'error');
+  }
 }
 
-function cancelRecording() {
-  stopVoice(activeRecognizer);
-  activeRecognizer = null;
+async function stopAndSave() {
+  if (!activeRecorder) return;
+  const recorder = activeRecorder;
+  activeRecorder = null;
   hideOverlay();
+
+  try {
+    const blob = await recorder.stop();
+    const where = await locationPromise;
+    const who = getLastFronter();
+    const audioPath = await saveAudio(blob);
+
+    addLogEntry({
+      who,
+      where,
+      when: new Date().toLocaleString(),
+      audioPath,
+      timestamp: new Date().toISOString(),
+    });
+
+    showToast('Logged!');
+    if (document.getElementById('logDisplay')) {
+      renderLogs('logDisplay', 'recent_logs');
+    }
+  } catch {
+    showToast('Failed to save recording.', 'error');
+  }
 }
 
-// ── Overlay (recording UI) ───────────────────────────────────────────────────
+// ── Overlay ──────────────────────────────────────────────────────────────────
 
 function showOverlay() {
-  overlayText.textContent = '…';
+  overlayText.textContent = 'Recording…';
   overlay.classList.add('active');
 }
 
@@ -96,7 +84,7 @@ function hideOverlay() {
   overlayText.textContent = '';
 }
 
-// ── Preset sheet (Mode B) ────────────────────────────────────────────────────
+// ── Preset sheet ─────────────────────────────────────────────────────────────
 
 function openSheet() {
   const fronter = getLastFronter();
@@ -152,7 +140,6 @@ function buildSheetContent(fronter) {
   };
   updateWhoChip();
 
-  // Part picker (shown inline when who chip is tapped)
   const picker = document.createElement('div');
   picker.className = 'ql-part-picker';
   picker.style.display = 'none';
@@ -219,14 +206,8 @@ function buildSheetContent(fronter) {
   logBtn.style.marginTop = '16px';
   logBtn.textContent = 'Log It';
   logBtn.onclick = async () => {
-    if (!selectedWho) {
-      showToast('Pick who is fronting.', 'error');
-      return;
-    }
-    if (!selectedPreset) {
-      showToast('Pick a preset.', 'error');
-      return;
-    }
+    if (!selectedWho) { showToast('Pick who is fronting.', 'error'); return; }
+    if (!selectedPreset) { showToast('Pick a preset.', 'error'); return; }
 
     const where = await getLocation(4000);
     addLogEntry({
@@ -244,33 +225,28 @@ function buildSheetContent(fronter) {
   sheet.appendChild(logBtn);
 }
 
-// ── FAB interaction (tap = open sheet) ──────────────────────────────────────
-
 // ── Init ─────────────────────────────────────────────────────────────────────
 
 export function initQuickLog() {
   const root = document.getElementById('quick-log-root');
   if (!root) return;
 
-  // FAB
   fab = document.createElement('button');
   fab.className = 'quick-log-fab';
   fab.setAttribute('aria-label', 'Quick Log');
   fab.textContent = '⚡';
   fab.addEventListener('click', openSheet);
 
-  // Recording overlay
   overlay = document.createElement('div');
   overlay.className = 'ql-overlay';
   overlay.innerHTML = `
     <div class="ql-mic-icon">🎙</div>
     <div class="ql-transcript"></div>
-    <div class="ql-cancel-hint">Tap to cancel</div>
+    <div class="ql-cancel-hint">Tap to stop &amp; save</div>
   `;
   overlayText = overlay.querySelector('.ql-transcript');
-  overlay.addEventListener('pointerdown', cancelRecording);
+  overlay.addEventListener('pointerdown', stopAndSave);
 
-  // Preset sheet + its overlay
   sheetOverlay = document.createElement('div');
   sheetOverlay.className = 'ql-sheet-overlay';
   sheetOverlay.addEventListener('pointerdown', closeSheet);

@@ -1,14 +1,17 @@
 {
-  "name": "capacitor-app",
+  "name": "inner-parts",
   "version": "1.0.0",
-  "description": "An Amazing Capacitor App",
+  "description": "A private fronting tracker and system management app for plural systems.",
   "type": "module",
   "keywords": [
-    "capacitor",
-    "mobile"
+    "plural",
+    "did",
+    "system",
+    "fronting"
   ],
   "scripts": {
     "start": "vite",
+    "build:cities": "node scripts/build-cities.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

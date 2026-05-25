@@ -215,30 +215,36 @@ async function shareOrDownload(blob, filename) {
   const Filesystem = window.Capacitor?.Plugins?.Filesystem;
   const SharePlugin = window.Capacitor?.Plugins?.Share;
 
-  // Primary: Capacitor Filesystem + Share plugin (reliable on Android)
-  if (Filesystem && SharePlugin) {
+  if (Filesystem) {
+    const BACKUP_DIR = 'InnerParts/backups';
     try {
       const text = await blob.text();
-      const result = await Filesystem.writeFile({
-        path: filename,
+
+      // Save persistently to Documents/InnerParts/backups/
+      await Filesystem.mkdir({ path: BACKUP_DIR, directory: 'DOCUMENTS', recursive: true }).catch(() => {});
+      await Filesystem.writeFile({
+        path: `${BACKUP_DIR}/${filename}`,
         data: text,
-        directory: 'CACHE',
+        directory: 'DOCUMENTS',
         encoding: 'utf8',
       });
-      await SharePlugin.share({
-        title: filename,
-        url: result.uri,
-        dialogTitle: 'Save or share backup',
-      });
+      showToast('Backup saved to InnerParts/backups/');
+
+      // Also offer sharing so they can move it off-device
+      if (SharePlugin) {
+        const { uri } = await Filesystem.getUri({ path: `${BACKUP_DIR}/${filename}`, directory: 'DOCUMENTS' });
+        await SharePlugin.share({ title: filename, url: uri, dialogTitle: 'Share or copy backup' }).catch((err) => {
+          const msg = err?.message ?? '';
+          if (!msg.includes('cancel') && !msg.includes('Cancel')) console.warn('Share cancelled or failed', err);
+        });
+      }
       return;
     } catch (err) {
-      const msg = err?.message ?? '';
-      if (msg.includes('cancel') || msg.includes('Cancel')) return;
-      console.warn('Capacitor share failed, trying Web Share API', err);
+      console.warn('Filesystem backup failed, falling back', err);
     }
   }
 
-  // Fallback: Web Share API (works in some Capacitor WebView builds)
+  // Fallback: Web Share API
   const file = new File([blob], filename, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
