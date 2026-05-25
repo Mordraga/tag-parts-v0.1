@@ -5,8 +5,10 @@ import { openModal } from './modal.js';
 let unlocked = false;
 let currentPart = null;
 
-function codeToken(partName, code) {
-  return btoa('tagparts:' + partName.toLowerCase() + ':' + code);
+async function hashCode(partName, code) {
+  const msg = 'innerparts:' + partName.toLowerCase() + ':' + code;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return 'sha256:' + Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function entriesKey(partName) {
@@ -190,10 +192,22 @@ function renderGate(part) {
   const btn = gate.querySelector('#unlockBtn');
   const err = gate.querySelector('#gateError');
 
-  const attempt = () => {
+  const attempt = async () => {
     const codes = loadFromStorage('journal_codes', {});
     const stored = codes[part.name];
-    if (codeToken(part.name, input.value) === stored) {
+    let matched = false;
+    if (stored && stored.startsWith('sha256:')) {
+      matched = (await hashCode(part.name, input.value)) === stored;
+    } else if (stored) {
+      // Legacy btoa format — check and migrate on success
+      const legacy = btoa('tagparts:' + part.name.toLowerCase() + ':' + input.value);
+      matched = legacy === stored;
+      if (matched) {
+        codes[part.name] = await hashCode(part.name, input.value);
+        saveToStorage('journal_codes', codes);
+      }
+    }
+    if (matched) {
       unlocked = true;
       renderJournal(part);
     } else {

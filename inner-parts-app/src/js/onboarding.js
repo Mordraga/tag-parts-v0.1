@@ -2,6 +2,7 @@ import { saveToStorage, loadFromStorage } from './storage.js';
 import { ensureMicPermission } from './voice.js';
 import { getLocation } from './gps.js';
 import { requestPermission } from './notifications.js';
+import { getTermSingular, getTermPlural } from './utils.js';
 
 const DONE_KEY = 'onboarding_complete';
 const PARTS_KEY = 'parts_data';
@@ -18,6 +19,9 @@ export function maybeShowOnboarding() {
 }
 
 function buildOverlay() {
+  const singular = getTermSingular();
+  const plural = getTermPlural();
+
   const overlay = document.createElement('div');
   overlay.id = 'ob-overlay';
   overlay.innerHTML = `
@@ -25,9 +29,9 @@ function buildOverlay() {
       <div class="ob-step" id="ob-step-1">
         <div class="ob-hero">🌟</div>
         <h2>Welcome to Inner Parts</h2>
-        <p class="ob-subtitle">A private space for your system to track fronting, manage parts, and understand patterns over time.</p>
+        <p class="ob-subtitle">A private space for your system to track fronting, manage ${plural.toLowerCase()}, and understand patterns over time.</p>
         <div class="ob-features">
-          <div class="ob-feature-chip">🧩 Parts directory</div>
+          <div class="ob-feature-chip">🧩 ${plural} directory</div>
           <div class="ob-feature-chip">📋 Fronting log</div>
           <div class="ob-feature-chip">📓 Journals</div>
           <div class="ob-feature-chip">📊 Analytics</div>
@@ -37,8 +41,8 @@ function buildOverlay() {
       </div>
 
       <div class="ob-step ob-hidden" id="ob-step-2">
-        <h2>Add Your First Part</h2>
-        <p class="ob-subtitle">Parts are the members of your system. Add one now to unlock the fronting log and autocomplete.</p>
+        <h2>Add Your First ${singular}</h2>
+        <p class="ob-subtitle">${plural} are the members of your system. Add one now to unlock the fronting log and autocomplete.</p>
         <div class="ob-form">
           <label class="ob-label">
             Name <span class="ob-req">*</span>

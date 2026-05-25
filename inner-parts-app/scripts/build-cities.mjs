@@ -3,12 +3,14 @@
 // Output: src/data/cities.json
 
 import { createWriteStream, createReadStream } from 'fs';
-import { mkdir, unlink } from 'fs/promises';
+import { mkdir, unlink, writeFile } from 'fs/promises';
 import { pipeline } from 'stream/promises';
 import { createInterface } from 'readline';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 
+const require = createRequire(import.meta.url);
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dir, '..');
 const ZIP_URL = 'https://download.geonames.org/export/dump/cities15000.zip';
@@ -18,16 +20,32 @@ const OUT_PATH = join(ROOT, 'src', 'data', 'cities.json');
 
 async function downloadFile(url, dest) {
   console.log(`Downloading ${url}…`);
-  const res = await fetch(url);
+  const res = await fetch(url, { headers: { 'User-Agent': 'InnerParts/build-script' } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   await pipeline(res.body, createWriteStream(dest));
 }
 
-async function unzipFile(zipPath, txtPath) {
+function unzipFile(zipPath, txtPath) {
   console.log('Extracting…');
-  // Use system unzip — available on Linux/macOS CI and WSL
-  const { execSync } = await import('child_process');
-  execSync(`unzip -p "${zipPath}" cities15000.txt > "${txtPath}"`);
+  return new Promise((resolve, reject) => {
+    const yauzl = require('yauzl');
+    yauzl.open(zipPath, { lazyEntries: true }, (err, zipfile) => {
+      if (err) return reject(err);
+      zipfile.readEntry();
+      zipfile.on('entry', entry => {
+        if (entry.fileName !== 'cities15000.txt') { zipfile.readEntry(); return; }
+        zipfile.openReadStream(entry, (err, stream) => {
+          if (err) return reject(err);
+          const out = createWriteStream(txtPath);
+          stream.pipe(out);
+          out.on('finish', resolve);
+          out.on('error', reject);
+        });
+      });
+      zipfile.on('end', () => reject(new Error('cities15000.txt not found in zip')));
+      zipfile.on('error', reject);
+    });
+  });
 }
 
 async function processFile(txtPath) {
@@ -38,20 +56,18 @@ async function processFile(txtPath) {
   for await (const line of rl) {
     if (!line.trim()) continue;
     const f = line.split('\t');
-    // Fields: 0=geonameid, 1=name, 2=asciiname, 4=lat, 5=lng, 8=country, 10=admin1
+    // Fields: 0=geonameid, 1=name, 4=lat, 5=lng, 8=country, 10=admin1
     const name = f[1];
     const lat  = parseFloat(f[4]);
     const lng  = parseFloat(f[5]);
     const cc   = f[8];
     const a1   = f[10] || '';
     if (!name || isNaN(lat) || isNaN(lng)) continue;
-    // Store lat/lng at 2dp — ~1km precision, sufficient for city-level lookup
     cities.push([name, parseFloat(lat.toFixed(2)), parseFloat(lng.toFixed(2)), cc, a1]);
   }
 
   console.log(`Writing ${cities.length} cities to ${OUT_PATH}…`);
   await mkdir(join(ROOT, 'src', 'data'), { recursive: true });
-  const { writeFile } = await import('fs/promises');
   await writeFile(OUT_PATH, JSON.stringify(cities));
 }
 

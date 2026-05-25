@@ -1,18 +1,6 @@
-// Offline reverse geocoding using bundled GeoNames city data.
-// cities.json format: [[name, lat, lng, countryCode, admin1Code], ...]
+import citiesData from '../data/cities.json';
 
-let cities = null;
-
-async function loadCities() {
-  if (cities) return cities;
-  try {
-    const mod = await import('../data/cities.json', { assert: { type: 'json' } });
-    cities = mod.default;
-  } catch {
-    cities = [];
-  }
-  return cities;
-}
+// cities format: [[name, lat, lng, countryCode, admin1Code], ...]
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -26,23 +14,21 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 }
 
 function formatCity(name, cc, admin1) {
-  // For US/CA/AU, admin1 is a readable state/province code
   const showAdmin = ['US', 'CA', 'AU'].includes(cc) && admin1;
   return showAdmin ? `${name}, ${admin1}` : `${name}, ${cc}`;
 }
 
-export async function nearestCity(lat, lng) {
-  const data = await loadCities();
-  if (!data.length) return null;
+export function nearestCity(lat, lng) {
+  if (!citiesData.length) return null;
 
   let best = null;
   let bestDist = Infinity;
 
-  for (const [name, clat, clng, cc, admin1] of data) {
+  for (const [name, clat, clng, cc, admin1] of citiesData) {
     const d = haversineKm(lat, lng, clat, clng);
     if (d < bestDist) {
       bestDist = d;
-      best = { name, cc, admin1, distKm: d };
+      best = { name, cc, admin1 };
     }
   }
 

@@ -28,6 +28,32 @@
   </div>
 
   <div class="card settings-card">
+    <h3>🗣 Terminology</h3>
+    <p style="font-size:0.88rem;color:var(--timestamp);margin:0 0 12px">Choose how to refer to system members throughout the app.</p>
+    <div class="row">
+      <label for="termPreset">Style</label>
+      <select id="termPreset">
+        <option value="members">Members</option>
+        <option value="parts">Parts (DID/OSDD)</option>
+        <option value="alters">Alters</option>
+        <option value="headmates">Headmates</option>
+        <option value="custom">Custom…</option>
+      </select>
+    </div>
+    <div id="termCustomFields" class="hidden" style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+      <div class="row">
+        <label for="termSingular">Singular</label>
+        <input id="termSingular" type="text" placeholder="e.g. alter" maxlength="30" style="max-width:180px" />
+      </div>
+      <div class="row">
+        <label for="termPlural">Plural</label>
+        <input id="termPlural" type="text" placeholder="e.g. alters" maxlength="30" style="max-width:180px" />
+      </div>
+      <button id="termSaveBtn" style="align-self:flex-start;padding:6px 16px">Save</button>
+    </div>
+  </div>
+
+  <div class="card settings-card">
     <h3>💾 Backup & Restore</h3>
     <p>Save everything or restore from a previous backup — no JSON needed.</p>
     <button id="backupAllBtn" class="btn-block">💾 Back Up Everything</button>

@@ -1,6 +1,6 @@
 import { addLogEntry, renderLogs } from './log.js';
 import { loadFromStorage } from './storage.js';
-import { showToast, loadPartsIndex } from './utils.js';
+import { showToast, loadPartsIndex, getTermSingular } from './utils.js';
 import { startRecording, saveAudio } from './voice.js';
 import { getLocation } from './gps.js';
 
@@ -135,7 +135,7 @@ function buildSheetContent(fronter) {
   whoChip.className = 'ql-who-chip';
   const updateWhoChip = () => {
     const part = partsIndex.find((p) => p.name === selectedWho);
-    whoChip.textContent = selectedWho || 'Pick a part';
+    whoChip.textContent = selectedWho || `Pick a ${getTermSingular().toLowerCase()}`;
     if (part && part.color) whoChip.style.color = part.color;
   };
   updateWhoChip();

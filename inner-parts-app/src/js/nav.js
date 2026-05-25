@@ -1,9 +1,17 @@
 const SECONDARY_HREFS = ['messageBoard.html', 'relationships.html', 'analytics.html', 'Settings.html'];
 
+function getTermPlural() {
+  try { return JSON.parse(localStorage.getItem('terminology') || '{}').plural || 'Parts'; } catch { return 'Parts'; }
+}
+
 export function initNav() {
   const filename = location.pathname.split('/').pop() || 'index.html';
   const secondary = document.getElementById('bn-secondary');
   const moreBtn = document.getElementById('bn-more');
+
+  // Apply custom terminology to nav label
+  const partsLabel = document.querySelector('.bn-item[href="parts.html"] .bn-label');
+  if (partsLabel) partsLabel.textContent = getTermPlural();
 
   // Mark active link
   let activeInSecondary = false;

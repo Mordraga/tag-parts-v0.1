@@ -1,6 +1,6 @@
 import { loadFromStorage, saveToStorage } from './storage.js';
 import { getLogEntries, renderArchive } from './log.js';
-import { showToast } from './utils.js';
+import { showToast, TERM_PRESETS } from './utils.js';
 import './nav.js';
 import { requestPermission, scheduleReminders, cancelReminders, initReminders } from './notifications.js';
 
@@ -156,6 +156,44 @@ document.addEventListener('DOMContentLoaded', () => {
         archiveContainer.classList.add('hidden');
         toggleArchiveBtn.textContent = 'Show Archive';
       }
+    });
+  }
+
+  // === Terminology ===
+  const termPreset = document.getElementById('termPreset');
+  const termCustomFields = document.getElementById('termCustomFields');
+  const termSingular = document.getElementById('termSingular');
+  const termPlural = document.getElementById('termPlural');
+  const termSaveBtn = document.getElementById('termSaveBtn');
+
+  if (termPreset) {
+    const saved = JSON.parse(localStorage.getItem('terminology') || '{}');
+    const savedPreset = saved.preset || 'members';
+    termPreset.value = TERM_PRESETS[savedPreset] ? savedPreset : 'custom';
+    if (termPreset.value === 'custom') {
+      termSingular.value = saved.singular || '';
+      termPlural.value = saved.plural || '';
+      termCustomFields.classList.remove('hidden');
+    }
+
+    termPreset.addEventListener('change', () => {
+      const val = termPreset.value;
+      if (val === 'custom') {
+        termCustomFields.classList.remove('hidden');
+      } else {
+        termCustomFields.classList.add('hidden');
+        const preset = TERM_PRESETS[val];
+        localStorage.setItem('terminology', JSON.stringify({ preset: val, singular: preset.singular, plural: preset.plural }));
+        showToast(`Terminology set to ${preset.plural}.`);
+      }
+    });
+
+    termSaveBtn?.addEventListener('click', () => {
+      const s = termSingular.value.trim();
+      const p = termPlural.value.trim();
+      if (!s || !p) { showToast('Enter both singular and plural terms.', 'error'); return; }
+      localStorage.setItem('terminology', JSON.stringify({ preset: 'custom', singular: s, plural: p }));
+      showToast(`Terminology set to ${p}.`);
     });
   }
 

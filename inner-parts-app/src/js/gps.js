@@ -7,10 +7,10 @@ export function getLocation(timeoutMs = 5000) {
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
+      ({ coords }) => {
         const { latitude: lat, longitude: lng } = coords;
         try {
-          const city = await nearestCity(lat, lng);
+          const city = nearestCity(lat, lng);
           resolve(city ?? `${lat.toFixed(2)}, ${lng.toFixed(2)}`);
         } catch {
           resolve(`${lat.toFixed(2)}, ${lng.toFixed(2)}`);

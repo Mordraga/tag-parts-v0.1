@@ -10,6 +10,30 @@ marked.setOptions({
   gfm: true
 });
 
+// ── Terminology helpers ───────────────────────────────────────────────────────
+const TERM_PRESETS = {
+  parts:     { singular: 'Part',     plural: 'Parts'     },
+  alters:    { singular: 'Alter',    plural: 'Alters'    },
+  headmates: { singular: 'Headmate', plural: 'Headmates' },
+  members:   { singular: 'Member',   plural: 'Members'   },
+};
+
+function readTerminology() {
+  try { return JSON.parse(localStorage.getItem('terminology') || '{}'); } catch { return {}; }
+}
+
+export function getTermSingular() {
+  const t = readTerminology();
+  return t.singular || 'Member';
+}
+
+export function getTermPlural() {
+  const t = readTerminology();
+  return t.plural || 'Members';
+}
+
+export { TERM_PRESETS };
+
 // Keys
 const PARTS_INDEX_KEY = 'parts_index';
 const PART_SUGGESTION_ID = 'partsSuggestions';

@@ -1,6 +1,6 @@
 
 import { saveToStorage, loadFromStorage } from './storage.js';
-import { refreshPartSuggestions, showToast } from './utils.js';
+import { refreshPartSuggestions, showToast, getTermSingular, getTermPlural } from './utils.js';
 import { openModal } from './modal.js';
 
 const STORAGE_KEY = 'parts_data';
@@ -273,9 +273,12 @@ function buildPresetsSection(part, index) {
   return section;
 }
 
-function saveJournalCode(partName, code) {
+async function saveJournalCode(partName, code) {
+  const msg = 'innerparts:' + partName.toLowerCase() + ':' + code;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  const hash = 'sha256:' + Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   const codes = loadFromStorage('journal_codes', {});
-  codes[partName] = btoa('tagparts:' + partName.toLowerCase() + ':' + code);
+  codes[partName] = hash;
   saveToStorage('journal_codes', codes);
 }
 
@@ -297,14 +300,14 @@ function buildJournalCodeForm(part) {
     </div>
   `;
 
-  form.querySelector('.jcode-save-btn').addEventListener('click', () => {
+  form.querySelector('.jcode-save-btn').addEventListener('click', async () => {
     const a = form.querySelector('.jcode-input').value;
     const b = form.querySelector('.jcode-confirm').value;
     const err = form.querySelector('.jcode-error');
     if (!a.trim()) return;
     if (a !== b) { err.style.display = 'block'; return; }
     err.style.display = 'none';
-    saveJournalCode(part.name, a);
+    await saveJournalCode(part.name, a);
     form.remove();
   });
 
@@ -496,6 +499,16 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('partForm').addEventListener('submit', handleSubmit);
   setupColorSync();
   renderParts();
+
+  // Apply terminology
+  const singular = getTermSingular();
+  const plural = getTermPlural();
+  const titleEl = document.getElementById('parts-page-title');
+  if (titleEl) titleEl.textContent = plural + ' Directory';
+  const headerEl = document.getElementById('parts-form-header');
+  if (headerEl) headerEl.textContent = '🧠 Add or Edit a ' + singular;
+  const nameInput = document.getElementById('name');
+  if (nameInput) nameInput.placeholder = singular + ' Name';
 });
 
 export function getPartsMap() {
