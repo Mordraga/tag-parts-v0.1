@@ -70,16 +70,20 @@ jobs:
         working-directory: inner-parts-app/android
         run: ./gradlew assembleDebug --no-daemon
 
+      - name: Rename debug APK
+        if: steps.tag_version.outputs.new_tag != ''
+        run: mv inner-parts-app/android/app/build/outputs/apk/debug/app-debug.apk inner-parts-app/android/app/build/outputs/apk/debug/inner-parts-${{ steps.tag_version.outputs.new_tag }}.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: inner-parts-${{ github.run_number }}
-          path: inner-parts-app/android/app/build/outputs/apk/debug/app-debug.apk
+          path: inner-parts-app/android/app/build/outputs/apk/debug/${{ steps.tag_version.outputs.new_tag != '' && format('inner-parts-{0}.apk', steps.tag_version.outputs.new_tag) || 'app-debug.apk' }}
           retention-days: 30
 
       - name: Package with Release
-        if: github.ref == 'refs/heads/main'
+        if: steps.tag_version.outputs.new_tag != ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          files: inner-parts-app/android/app/build/outputs/apk/debug/app-debug.apk
+          files: inner-parts-app/android/app/build/outputs/apk/debug/inner-parts-${{ steps.tag_version.outputs.new_tag }}.apk
