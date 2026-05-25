@@ -45,7 +45,7 @@ All data is stored locally on the device. No accounts, no servers, no telemetry.
 ### Run in browser (dev mode)
 
 ```bash
-cd my-app
+cd inner-parts-app
 npm install
 npm start        # Vite dev server → http://localhost:5173
 ```
@@ -53,7 +53,7 @@ npm start        # Vite dev server → http://localhost:5173
 ### Deploy to Android device / emulator
 
 ```bash
-cd my-app
+cd inner-parts-app
 npm run build          # Compile web assets → dist/
 npx cap sync android   # Copy dist/ into android/app/src/main/assets/public/
 npx cap run android    # Build and deploy to connected device
@@ -77,7 +77,7 @@ Download it from the **Actions** tab → latest workflow run → **Artifacts →
 ### Manual debug build
 
 ```bash
-cd my-app
+cd inner-parts-app
 npm run build
 npx cap sync android
 cd android
@@ -105,7 +105,7 @@ For automated release builds via GitHub Actions, store the keystore as a base64-
 ## Project Structure
 
 ```
-my-app/
+inner-parts-app/
 ├── src/
 │   ├── index.html          # Fronting log (home screen)
 │   ├── parts.html          # Parts directory
