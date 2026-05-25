@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  attachPartSuggestions(document.querySelector('.who-input'));
+  attachPartSuggestions(document.querySelector('#who-primary .who-input'));
   attachMentionAutocomplete(document.getElementById('msg'));
   document.getElementById('add-cofronter').addEventListener('click', addCoFronterField);
 
@@ -31,6 +31,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function addCoFronterField() {
+  const container = document.getElementById('cofronter-container');
   const row = document.createElement('div');
   row.className = 'who-field';
   const input = document.createElement('input');
@@ -40,9 +41,14 @@ function addCoFronterField() {
   btn.type = 'button';
   btn.className = 'who-remove-btn';
   btn.textContent = '−';
-  btn.addEventListener('click', () => row.remove());
+  btn.addEventListener('click', () => {
+    row.remove();
+    if (!container.querySelector('.who-field')) container.hidden = true;
+  });
   row.append(input, btn);
-  document.getElementById('who-container').appendChild(row);
+  container.hidden = false;
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
   attachPartSuggestions(input);
 }
 
@@ -76,9 +82,10 @@ function logEntry() {
   showToast("Entry logged!");
 
   // Clear form
-  const whoContainer = document.getElementById('who-container');
-  whoContainer.querySelectorAll('.who-field:not(:first-child)').forEach(r => r.remove());
-  whoContainer.querySelector('.who-input').value = '';
+  document.querySelector('#who-primary .who-input').value = '';
+  const cofronterContainer = document.getElementById('cofronter-container');
+  cofronterContainer.innerHTML = '';
+  cofronterContainer.hidden = true;
   document.getElementById('where').value = '';
   document.getElementById('when').value = '';
   document.getElementById('msg').value = '';

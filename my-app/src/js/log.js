@@ -300,7 +300,8 @@ function openLogEditModal(log, containerId, type, refreshCallback) {
   openModal('Edit Log', (body, close) => {
     body.innerHTML = `
       <div class="log-edit-form">
-        <div class="edit-who-container"></div>
+        <div class="edit-who-primary"></div>
+        <div class="edit-cofronter-container" hidden></div>
         <button type="button" class="edit-add-cofronter">+ co-fronter</button>
         <input type="text" class="edit-where" placeholder="Where" value="${log.where}" />
         <input type="text" class="edit-when" placeholder="When" value="${log.when}" />
@@ -315,7 +316,8 @@ function openLogEditModal(log, containerId, type, refreshCallback) {
       </div>
     `;
 
-    const whoContainer = body.querySelector('.edit-who-container');
+    const primaryContainer = body.querySelector('.edit-who-primary');
+    const cofronterContainer = body.querySelector('.edit-cofronter-container');
     const whoValues = Array.isArray(log.who) ? log.who : [log.who || ''];
 
     function addEditWhoRow(value, isPrimary) {
@@ -332,10 +334,17 @@ function openLogEditModal(log, containerId, type, refreshCallback) {
         btn.type = 'button';
         btn.className = 'who-remove-btn';
         btn.textContent = '−';
-        btn.addEventListener('click', () => row.remove());
+        btn.addEventListener('click', () => {
+          row.remove();
+          if (!cofronterContainer.querySelector('.who-field')) cofronterContainer.hidden = true;
+        });
         row.appendChild(btn);
+        cofronterContainer.hidden = false;
+        cofronterContainer.appendChild(row);
+        cofronterContainer.scrollTop = cofronterContainer.scrollHeight;
+      } else {
+        primaryContainer.appendChild(row);
       }
-      whoContainer.appendChild(row);
       attachPartSuggestions(input);
     }
 

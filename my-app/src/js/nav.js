@@ -1,21 +1,31 @@
-export function initNav() {
-  const toggle = document.getElementById('nav-toggle');
-  const overlay = document.getElementById('nav-overlay');
+const SECONDARY_HREFS = ['messageBoard.html', 'relationships.html', 'analytics.html', 'Settings.html'];
 
+export function initNav() {
   const filename = location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('nav a').forEach(a => {
-    const href = a.getAttribute('href');
-    if (href === filename || (filename === '' && href === 'index.html')) {
+  const secondary = document.getElementById('bn-secondary');
+  const moreBtn = document.getElementById('bn-more');
+
+  // Mark active link
+  let activeInSecondary = false;
+  document.querySelectorAll('.bn-item[href]').forEach(a => {
+    if (a.getAttribute('href') === filename) {
       a.classList.add('active');
+      if (SECONDARY_HREFS.includes(filename)) activeInSecondary = true;
     }
   });
 
-  toggle?.addEventListener('click', () => {
-    document.body.classList.toggle('sidebar-open');
-  });
+  // Auto-open secondary row if current page lives there
+  if (activeInSecondary && secondary && moreBtn) {
+    secondary.classList.add('bn-open');
+    moreBtn.classList.add('bn-active');
+    moreBtn.setAttribute('aria-expanded', 'true');
+  }
 
-  overlay?.addEventListener('click', () => {
-    document.body.classList.remove('sidebar-open');
+  // Toggle secondary row
+  moreBtn?.addEventListener('click', () => {
+    const open = secondary.classList.toggle('bn-open');
+    moreBtn.setAttribute('aria-expanded', String(open));
+    moreBtn.classList.toggle('bn-active', open);
   });
 }
 

@@ -32,7 +32,6 @@ let fab, overlay, overlayText, sheet, sheetOverlay;
 let activeRecognizer = null;
 let locationPromise = null;
 let finalTranscript = '';
-let holdTimer = null;
 
 // ── Voice path (Mode A) ─────────────────────────────────────────────────────
 
@@ -118,10 +117,19 @@ function buildSheetContent(fronter) {
   const header = document.createElement('div');
   header.className = 'ql-sheet-header';
   header.innerHTML = '<strong>Quick Log</strong>';
+
+  const micBtn = document.createElement('button');
+  micBtn.className = 'ghost ql-mic-btn';
+  micBtn.setAttribute('aria-label', 'Voice log');
+  micBtn.textContent = '🎙';
+  micBtn.onclick = () => { closeSheet(); startRecordingFlow(); };
+
   const closeBtn = document.createElement('button');
   closeBtn.className = 'ghost ql-close-btn';
   closeBtn.textContent = '✕';
   closeBtn.onclick = closeSheet;
+
+  header.appendChild(micBtn);
   header.appendChild(closeBtn);
   sheet.appendChild(header);
 
@@ -236,35 +244,7 @@ function buildSheetContent(fronter) {
   sheet.appendChild(logBtn);
 }
 
-// ── FAB interaction (tap = voice, long-press = sheet) ────────────────────────
-
-function onFABPointerDown() {
-  holdTimer = setTimeout(() => {
-    holdTimer = null;
-    openSheet();
-  }, 350);
-}
-
-function onFABPointerUp() {
-  if (holdTimer !== null) {
-    clearTimeout(holdTimer);
-    holdTimer = null;
-    // Short tap — voice mode
-    if (activeRecognizer) {
-      cancelRecording();
-    } else {
-      startRecordingFlow();
-    }
-  }
-  // long-press already fired openSheet — nothing to do
-}
-
-function onFABPointerCancel() {
-  if (holdTimer !== null) {
-    clearTimeout(holdTimer);
-    holdTimer = null;
-  }
-}
+// ── FAB interaction (tap = open sheet) ──────────────────────────────────────
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
@@ -276,12 +256,8 @@ export function initQuickLog() {
   fab = document.createElement('button');
   fab.className = 'quick-log-fab';
   fab.setAttribute('aria-label', 'Quick Log');
-  fab.title = 'Tap: voice log  |  Hold: presets';
-  fab.textContent = '🎙';
-  fab.addEventListener('pointerdown', onFABPointerDown);
-  fab.addEventListener('pointerup', onFABPointerUp);
-  fab.addEventListener('pointercancel', onFABPointerCancel);
-  fab.addEventListener('contextmenu', (e) => e.preventDefault());
+  fab.textContent = '⚡';
+  fab.addEventListener('click', openSheet);
 
   // Recording overlay
   overlay = document.createElement('div');

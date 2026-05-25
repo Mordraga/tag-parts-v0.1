@@ -5,23 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Journal</title>
     <link rel="stylesheet" href="css/style.css" />
+  <script>(function(){var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');})();</script>
     <script src="js/settings.js" type="module"></script>
   </head>
   <body>
     <div id="journalRoot"></div>
 
-  <button id="nav-toggle" aria-label="Toggle navigation">›</button>
-  <nav>
-    <a href="index.html"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
-    <a href="loggys.html"><span class="nav-icon">📜</span><span class="nav-label">Logs</span></a>
-    <a href="parts.html"><span class="nav-icon">👥</span><span class="nav-label">Parts</span></a>
-    <a href="messageBoard.html"><span class="nav-icon">💬</span><span class="nav-label">Threads</span></a>
-    <a href="relationships.html"><span class="nav-icon">🔗</span><span class="nav-label">Bonds</span></a>
-    <a href="journal.html"><span class="nav-icon">📓</span><span class="nav-label">Journal</span></a>
-    <a href="analytics.html"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></a>
-    <a href="Settings.html"><span class="nav-icon">⚙️</span><span class="nav-label">Options</span></a>
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="bn-secondary" id="bn-secondary">
+      <a href="messageBoard.html" class="bn-item"><span class="bn-icon">💬</span><span class="bn-label">Threads</span></a>
+      <a href="relationships.html" class="bn-item"><span class="bn-icon">🔗</span><span class="bn-label">Bonds</span></a>
+      <a href="analytics.html" class="bn-item"><span class="bn-icon">📊</span><span class="bn-label">Stats</span></a>
+      <a href="Settings.html" class="bn-item"><span class="bn-icon">⚙️</span><span class="bn-label">Options</span></a>
+    </div>
+    <div class="bn-primary">
+      <a href="index.html" class="bn-item"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></a>
+      <a href="parts.html" class="bn-item"><span class="bn-icon">👥</span><span class="bn-label">Parts</span></a>
+      <a href="loggys.html" class="bn-item"><span class="bn-icon">📜</span><span class="bn-label">Logs</span></a>
+      <a href="journal.html" class="bn-item"><span class="bn-icon">📓</span><span class="bn-label">Journal</span></a>
+      <button class="bn-item bn-more" id="bn-more" aria-label="More" aria-expanded="false"><span class="bn-icon">⋯</span><span class="bn-label">More</span></button>
+    </div>
   </nav>
-  <div id="nav-overlay"></div>
 
     <script type="module" src="js/journal.js"></script>
   <div id="quick-log-root"></div>

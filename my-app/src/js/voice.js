@@ -5,7 +5,7 @@ const SILENCE_MS = 1800; // how long after last speech before auto-finalizing
 
 // getUserMedia pre-flight: Capacitor's WebChromeClient handles this permission path correctly,
 // whereas SpeechRecognition's own permission request goes through a path Capacitor can't forward.
-async function ensureMicPermission() {
+export async function ensureMicPermission() {
   if (!navigator.mediaDevices?.getUserMedia) return true;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

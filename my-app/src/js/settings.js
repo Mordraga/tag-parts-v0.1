@@ -22,20 +22,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const restoreAllBtn = document.getElementById('restoreAllBtn');
   const restoreAllInput = document.getElementById('restoreAllInput');
 
-  // === Theme: Dark Mode ===
+  // === Theme: Light Mode toggle (dark is default) ===
   const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'dark') {
-    root.setAttribute('data-theme', 'dark');
+  if (savedTheme === 'light') {
+    root.setAttribute('data-theme', 'light');
     if (darkToggle) darkToggle.checked = true;
   } else {
-    root.setAttribute('data-theme', 'light');
+    root.setAttribute('data-theme', 'dark');
   }
 
   if (darkToggle) {
     darkToggle.addEventListener('change', () => {
-      const theme = darkToggle.checked ? 'dark' : 'light';
-      root.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
+      if (darkToggle.checked) {
+        root.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      }
     });
   }
 
@@ -48,16 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // === Logs: Export Logs ===
-  exportLogsBtn?.addEventListener('click', () => {
+  exportLogsBtn?.addEventListener('click', async () => {
     const logs = getLogEntries();
     if (!logs || logs.length === 0) { showToast("No logs to export.", 'error'); return; }
     const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'front_logs.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    await shareOrDownload(blob, 'front_logs.json');
     showToast("Logs exported.");
   });
 
@@ -89,21 +88,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // === Backup All ===
-  backupAllBtn?.addEventListener('click', () => {
+  backupAllBtn?.addEventListener('click', async () => {
     const payload = {};
+    // Static keys
     BACKUP_KEYS.forEach(k => {
       const v = localStorage.getItem(k);
       if (v) { try { payload[k] = JSON.parse(v); } catch { payload[k] = v; } }
     });
+    // Dynamic journal entry keys (journal_entries_<partName>)
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('journal_entries_'))
+      .forEach(k => {
+        const v = localStorage.getItem(k);
+        if (v) { try { payload[k] = JSON.parse(v); } catch { payload[k] = v; } }
+      });
+
     const date = new Date().toISOString().slice(0, 10);
+    const filename = `front_tracker_backup_${date}.json`;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `front_tracker_backup_${date}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Backup saved!');
+
+    await shareOrDownload(blob, filename);
+    showToast('Backup ready!');
   });
 
   // === Restore All ===
@@ -116,9 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.onload = () => {
       try {
         const payload = JSON.parse(reader.result);
+        // Static keys
         BACKUP_KEYS.forEach(k => {
           if (payload[k] !== undefined) localStorage.setItem(k, JSON.stringify(payload[k]));
         });
+        // Dynamic journal entry keys
+        Object.keys(payload)
+          .filter(k => k.startsWith('journal_entries_'))
+          .forEach(k => localStorage.setItem(k, JSON.stringify(payload[k])));
         showToast('Restore complete! Reload to see your data.');
       } catch { showToast('Could not read backup file.', 'error'); }
       e.target.value = '';
@@ -148,6 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // === Ko-Fi Support ===
+  document.getElementById('kofi-btn')?.addEventListener('click', () => {
+    window.open('https://ko-fi.com/mordraga0', '_system');
+  });
 
   // === Check-in Reminders ===
   const reminderToggle = document.getElementById('reminder-toggle');
@@ -195,6 +210,53 @@ document.addEventListener('DOMContentLoaded', () => {
     initReminders();
   }
 });
+
+async function shareOrDownload(blob, filename) {
+  const Filesystem = window.Capacitor?.Plugins?.Filesystem;
+  const SharePlugin = window.Capacitor?.Plugins?.Share;
+
+  // Primary: Capacitor Filesystem + Share plugin (reliable on Android)
+  if (Filesystem && SharePlugin) {
+    try {
+      const text = await blob.text();
+      const result = await Filesystem.writeFile({
+        path: filename,
+        data: text,
+        directory: 'CACHE',
+        encoding: 'utf8',
+      });
+      await SharePlugin.share({
+        title: filename,
+        url: result.uri,
+        dialogTitle: 'Save or share backup',
+      });
+      return;
+    } catch (err) {
+      const msg = err?.message ?? '';
+      if (msg.includes('cancel') || msg.includes('Cancel')) return;
+      console.warn('Capacitor share failed, trying Web Share API', err);
+    }
+  }
+
+  // Fallback: Web Share API (works in some Capacitor WebView builds)
+  const file = new File([blob], filename, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+  }
+
+  // Last resort: blob URL download (desktop / browser dev mode)
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function applyImportedLogs(payload) {
   const ensureArray = (value) => (Array.isArray(value) ? value : []);
