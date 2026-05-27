@@ -73,16 +73,11 @@ export function findPartByName(name, partsIndex = loadPartsIndex()) {
   return partsIndex.find((p) => p.name.trim().toLowerCase() === needle) || null;
 }
 
+let suggestionsPopulated = false;
+
 export function attachPartSuggestions(inputEl) {
   if (!inputEl) return;
-
-  if (NEEDS_FALLBACK_SUGGESTIONS) {
-    if (!FALLBACK_CONTROLLERS.has(inputEl)) {
-      FALLBACK_CONTROLLERS.set(inputEl, createFallbackSuggestions(inputEl));
-    }
-    return;
-  }
-
+  
   let list = document.getElementById(PART_SUGGESTION_ID);
   if (!list) {
     list = document.createElement('datalist');
@@ -90,7 +85,11 @@ export function attachPartSuggestions(inputEl) {
     document.body.appendChild(list);
   }
 
-  populatePartSuggestions(list);
+  if (!suggestionsPopulated) {
+    populatePartSuggestions(list);
+    suggestionsPopulated = true;
+  }
+
   inputEl.setAttribute('list', PART_SUGGESTION_ID);
 }
 
